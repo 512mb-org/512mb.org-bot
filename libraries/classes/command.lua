@@ -5,13 +5,15 @@ local table_utils = import("table-utils")
 local class = import("classes.baseclass")
 local command = class("Command")
 local acl = import("classes.command-acl")
+local discordia = import("discordia")
 function command:__init(name,callback)
   self.rules = acl()
   self.name = name
-  self.timer = os.time()
+  self.timer = discordia.Date():toMilliseconds()
   self.options = {
     allow_bots = false, --allow bots to execute the command
     typing_decorator = false, --set if the bot should be "typing" while the command executes
+    category = "None", --set category for the command
     prefix = true, --if true and if regex isn't enabled, check for prefix at the start. if not, don't check for prefix
     regex = false, --check if the message matches this regular expression (should be a string)
     no_parsing = false, --check if you want to disable the message argument parsing process
@@ -141,7 +143,7 @@ function command:exec(message,args,opts)
     if status then
       self.callback(message,args,opts)
     else
-      msg:reply(err)
+      message:reply(err)
     end
   end
 end
@@ -155,6 +157,7 @@ end
 function command:get_properties()
   return {
     name = self.name,
+    category = self.options.category,
     args = table_utils.deepcopy(self.args),
     help = table_utils.deepcopy(self.help),
     prefix = self.prefix

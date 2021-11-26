@@ -14,6 +14,7 @@ function command_handler:__init(parent_server)
   self.prefixes = {}
   self.command_meta = {
     plugins = {},
+    categories = {}
   }
 end
 function command_handler:add_prefix(prefix)
@@ -43,6 +44,10 @@ function command_handler:add_command(command)
   if not self.command_meta.plugins[command.parent.name] then
     self.command_meta.plugins[command.parent.name] = {} 
   end
+  if not self.command_meta.categories[command.options.category] then
+    self.command_meta.categories[command.options.category] = {}
+  end
+  table.insert(self.command_meta.categories[command.options.category],command.name)
   table.insert(self.command_meta.plugins[command.parent.name],command.name)
   return command
 end
@@ -55,6 +60,10 @@ function command_handler:remove_command(command)
     table_utils.remove_value(self.command_meta.plugins[command.parent.name],command.name)
     if #self.command_meta.plugins[command.parent.name] == 0 then
         self.command_meta.plugins[command.parent.name] = nil
+    end
+    table_utils.remove_value(self.command_meta.categories[command.options.category],command.name)
+    if #self.command_meta.categories[command.options.category] == 0 then
+        self.command_meta.categories[command.options.category] = nil
     end
     self.command_pool[purified_name] = nil
     return true
@@ -81,7 +90,9 @@ function command_handler:get_commands_metadata()
   return table_utils.deepcopy(self.command_meta)
 end
 function command_handler:handle(message)
-  for name,command in pairs(self.command_pool) do
+    print("msg: "..tostring(message.content))
+    print("author: "..tostring(message.author.name))
+    for name,command in pairs(self.command_pool) do
     if command.options.regex then
       if message.content:match(command.options.regex) then
         command:exec(message)

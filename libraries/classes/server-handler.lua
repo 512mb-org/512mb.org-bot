@@ -42,8 +42,17 @@ function server_handler:__init(client,guild,options)
   self.default_plugins = options.default_plugins or {"test"}
   self.default_prefixes = options.default_prefixes or {"<@!"..self.client.user.id..">","&"}
 
-  self.config_path = self.config_path:gsub("%%id",self.id)
+  self.config_path = self.config_path:gsub("%id",self.id)
   self:load_config()
+  self.message_counter = 0
+  if autosave then
+    self.client:on("messageCreate",function(msg)
+      self.message_counter = self.message_counter + 1
+      if math.fmod(self.message_counter,self.autosave_frequency) == 0 then
+        self:save_config()
+      end
+    end)
+  end
   if not file.existsDir(self.config_path) then
     os.execute("mkdir -p "..self.config_path)
   end
