@@ -18,12 +18,13 @@ end
 
 local function register_words(str,word_list)
    local word_list = word_list or {}
-   str:gsub("%S+",function(word)
+   str:gsub("%S+",function(word) 
       if not word_list[word] then
          word_list[word] = {}
       end
       local current_word = word_list[word]
-      str:gsub(escape(word) .. "%s+(%S+)",function(word2)
+      local escaped_word = escape(word)
+      str:gsub("%s+" .. escaped_word .. "%s+(%S+)",function(word2)
         if not current_word[word2] then
           current_word[word2] = {}
         end
@@ -33,7 +34,7 @@ local function register_words(str,word_list)
           current_word[word2].occurences = current_word[word2].occurences + 1
         end
       end)
-   end)
+   end) 
    for k,v in pairs(word_list) do
      word_list[k] = node(v)
    end

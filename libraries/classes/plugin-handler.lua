@@ -10,13 +10,29 @@ local file = import("file")
 local json = import("json")
 local core = import("core")
 local emitter_proxy = import("classes.emitter-proxy")
-local table_utils = import("table-utils")
+local table_utils = import("table-utils") 
 function plugin_handler:__init(parent_server)
   assert(parent_server,"server handler to assign the plugin handler to has not been provided")
   self.server_handler = parent_server
   self.plugins = {}
   self.plugin_info = {}
   self.plugin_paths = {}
+  self.server_handler.event_emitter:on("serverSaveConfig",function()
+    print("[SERVER] Saving plugins configs")
+    for name,plugin in pairs(self.plugins) do
+      self:save_plugin_config(name)
+    end
+  end)
+end
+
+function plugin_handler:load_plugin_config(name)
+  return file.readJSON(self.server_handler.config_path..name..".json",{})
+end
+
+function plugin_handler:save_plugin_config(name)
+  if self.plugins[name] then
+    file.writeJSON(self.server_handler.config_path..name..".json",self.plugins[name].__env.config)
+  end
 end
 
 function plugin_handler:add_plugin_folder(path)
@@ -83,6 +99,7 @@ function plugin_handler:load(name)
     command_handler = self.server_handler.command_handler,
     plugin_handler = self.server_handler.plugin_handler,
     log = function() end,
+    config = self:load_plugin_config(name),
     import = import,
   },{__index = _G})
   local plugin_meta = self.plugin_info[name]
@@ -108,7 +125,7 @@ function plugin_handler:load(name)
   else
     return false, "File specified as the main file is inaccessible"
   end
-end
+end 
 
 function plugin_handler:unload(name)
   if self.plugins[name] then

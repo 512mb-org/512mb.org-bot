@@ -90,8 +90,6 @@ function command_handler:get_commands_metadata()
   return table_utils.deepcopy(self.command_meta)
 end
 function command_handler:handle(message)
-    print("msg: "..tostring(message.content))
-    print("author: "..tostring(message.author.name))
     for name,command in pairs(self.command_pool) do
     if command.options.regex then
       if message.content:match(command.options.regex) then
@@ -101,13 +99,13 @@ function command_handler:handle(message)
     else
       if command.options.prefix then
         for _,prefix in pairs(self.prefixes) do
-          if message.content:find(prefix..name.."$") == 1 or message.content:find(prefix..name.."%s") then
+          if message.content:match("^"..prefix..name.."$") or message.content:match("^"..prefix..name.."%s") then
             command:exec(message)
             return
           end
         end
       else
-        if message.content:find(name.."$") == 1 or message.content:find(name.."%s") then
+        if message.content:match("^"..name.."$") or message.content:match("^"..name.."%s") then
           command:exec(message)
           return
         end

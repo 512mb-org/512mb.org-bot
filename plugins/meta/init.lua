@@ -1,13 +1,12 @@
-segment = {}
-segment.help = "This is a set of commands that add some features specific to this bot"
-
-local map = {}
 local aliases = {}
 local fake_message = import("fake_message")
 local last_message_arrived = discordia.Stopwatch()
 local unixToString = import("unixToString")
 local command = import("classes.command")
 local plugin = import("classes.plugin")("meta")
+if not config.aliases then 
+  config.aliases = {}
+end
 
 client:on("messageCreate",function(msg)
   last_message_arrived:reset()
@@ -22,15 +21,17 @@ for k,v in pairs(command_handler:get_prefixes()) do
 end
 
 local function add_alias(name,comm,prefix,description)
-  if (not map[name]) then
-    map[name] = {comm = comm,prefix = prefix}
+  if (not aliases[name]) then
+    print("[ALIAS] Adding alias \""..name.."\" for \""..comm.."\"")
+    config.aliases[name] = {comm = comm,prefix = prefix}
     aliases[name] = command(name,{
       help = "Alias for ``"..comm.."``",
       usage = ((prefix and globals.prefix) or "")..name,
       exec = function(msg,args2,opts)
-        local str = msg.content:gsub(name.." ","")
-        aftersub = comm:gsub("%.%.%.",str)
-        aftersub = aftersub:gsub("%$prefix",prefix)
+        print("[ALIAS] Triggerting alias "..tostring(comm).." with args \""..tostring(msg.content).."\"")
+        local str = msg.content:gsub("^%S+ ?","") 
+        aftersub = comm:gsub("%.%.%.",str or "")
+        aftersub = aftersub:gsub("%$prefix",prefix or "&")
         local status,args = require("air").parse(str)
         for k,v in pairs(args) do
           aftersub = aftersub:gsub("([^\\])%$"..k,"%1"..v)
@@ -52,8 +53,8 @@ local function add_alias(name,comm,prefix,description)
 end
 
 local function remove_alias(name)
-  if map[name] then
-    map[name] = nil
+  if config.aliases[name] then
+    config.aliases[name] = nil
     plugin:remove_command(aliases[name])
     return true
   else
@@ -86,7 +87,7 @@ local function purify_strings(msg,input)
   return text
 end
 
-for k,v in pairs(import("file").readJSON("./servers/"..id.."/aliasmap.json",{})) do
+for k,v in pairs(config.aliases) do
   commdata = v
   if type(v) == "string" then --legacy format conversion
     commdata = {comm = v, prefix = false}
@@ -180,7 +181,7 @@ local c_aliases = command("aliases", {
       title = "Aliases for this server",
       fields = (function()
         local fields = {}
-        for k,v in pairs(map) do
+        for k,v in pairs(config.aliases) do
           table.insert(fields,{name = ((v["prefix"] and prefix) or "")..k,value = v["comm"]})
         end
         return fields
@@ -331,18 +332,16 @@ local c_echo = command("echo",{
 plugin:add_command(c_echo)
 
 plugin.removal_callback = function()
-  for k,v in pairs(map) do
+  for k,v in pairs(config.aliases) do
     remove_alias(k)
   end
 end
 
 local helpdb = import(plugin_path:sub(3,-1).."help")
 plugin:for_all_commands(function(command)
-    command:set_help(helpdb[command.name])
-end)
-
-events:on("serverSaveConfig",function()
-  import("file").writeJSON("./servers/"..id.."/aliasmap.json",map)
+    if helpdb[command.name] then
+        command:set_help(helpdb[command.name])
+    end
 end)
 
 return plugin

@@ -3,6 +3,7 @@ local plugin = class("Plugin")
 
 function plugin:__init()
   self.command_pool = {}
+  self.config = {}
 end
 
 function plugin:load(environment)

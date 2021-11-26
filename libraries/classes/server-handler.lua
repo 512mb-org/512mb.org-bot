@@ -33,19 +33,19 @@ function server_handler:__init(client,guild,options)
   self.plugin_handler = plugin_handler(self)
   self.command_handler = command_handler(self)
   self.id = guild.id
-  self.config = {}
   --conifgurable properties
   self.config_path = options.path or "./servers/%id/"
   self.autosave = options.path or true
   self.autosave_frequency = options.autosave_frequency or 10
   self.plugin_search_paths = options.plugin_search_paths or {"./plugins/"}
   self.default_plugins = options.default_plugins or {"test"}
-  self.default_prefixes = options.default_prefixes or {"<@!"..self.client.user.id..">","&"}
-
-  self.config_path = self.config_path:gsub("%id",self.id)
+  self.default_prefixes = options.default_prefixes or {"&","<@!"..self.client.user.id..">"}
+  self.config = {}
+  self.config_path = self.config_path:gsub("%%id",self.id)
   self:load_config()
+  self.config["prefix"] = self.config["prefix"] or  self.default_prefixes[1] or "(missing prefix)"
   self.message_counter = 0
-  if autosave then
+  if self.autosave then
     self.client:on("messageCreate",function(msg)
       self.message_counter = self.message_counter + 1
       if math.fmod(self.message_counter,self.autosave_frequency) == 0 then
@@ -74,7 +74,7 @@ function server_handler:__init(client,guild,options)
   end
   self.plugin_handler:update_plugin_info()
   for _,plugin_name in pairs(self.default_plugins) do
-    print(self.plugin_handler:load(plugin_name))
+    print("[SERVER] Loading plugin: "..tostring(plugin_name).." - ", self.plugin_handler:load(plugin_name))
   end
   for _,prefix in pairs(self.default_prefixes) do
     self.command_handler:add_prefix(prefix)
@@ -82,19 +82,22 @@ function server_handler:__init(client,guild,options)
 end
 
 function server_handler:load_config(path)
+  print("[SERVER] Loading config")
   if path then
     self.config = file.readJSON(path,{})
   else
     self.config = file.readJSON(self.config_path.."config.json")
   end
+  self.event_emitter:emit("serverLoadConfig",self.config)
 end
 
 function server_handler:save_config(path)
+  print("[SERVER] Saving config")
   if path then
     file.writeJSON(path,self.config)
   else
     file.writeJSON(self.config_path.."config.json",self.config)
   end
-  self.event_emitter("serverSaveConfig")
+  self.event_emitter:emit("serverSaveConfig",self.config)
 end
 return server_handler
