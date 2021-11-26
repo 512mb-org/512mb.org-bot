@@ -221,19 +221,19 @@ local c_about = command("about", {
     local rand = math.random
     local author = client:getUser("245973168257368076")
     msg:reply({embed = {
-      title = "About Suppa-Bot",
+      title = "About 512mb.org bot",
       thumbnail = {
         url = client.user:getAvatarURL()
       },
       color = discordia.Color.fromRGB(rand(50,200),rand(50,200),rand(50,200)).value,
-      description = "Suppa-Bot is an open-source bot written in Lua.",
+      description = "512mb.org is an open-source bot written in Lua. It is based on a beta rewrite version of the Suppa-Bot.",
       fields = {
         {name = "Source Code: ",value = "https://github.com/yessiest/SuppaBot"},
         {name = "Author: ",value = author.tag},
         {name = "Invite: ",value = "Not available yet"}
       },
       footer = {
-        text = "This is a WIP port of the meta plugin from the old bot to the new framework"
+        text = "For any information regarding the bot, contact yessiest on 512mb.org discord."
       }
     }})
   end
