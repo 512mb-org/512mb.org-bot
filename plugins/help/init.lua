@@ -80,7 +80,7 @@ local help_command = command("help",{
           embed.description = "Check again later"
         end
       else
-        embed.title = "SuppaBot-FW-r3 commands:"
+        embed.title = "512mb.org commands:"
         embed.description = "use ``help <command>`` to view help messages. (type ``help help`` for more info)"
         embed.fields = {}
         for k,v in pairs(command_handler:get_commands_metadata().plugins) do
