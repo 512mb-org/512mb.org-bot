@@ -49,7 +49,7 @@ local pivot = command("pivot",{
         return nil
       end
       if not segment.pivots[message.id] then
-        print("[REACTIONS] Creating pivot: "..tostring(segment.pivot.message))
+        print("[REACTIONS] Creating pivot: "..tostring(message.id))
         segment.pivots[message.id] = {}
         segment.pivots[message.id].message = message.id
         segment.pivots[message.id].channel = message.channel.id
