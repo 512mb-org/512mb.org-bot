@@ -11,7 +11,7 @@ local import = require("import")(require)
 local server = import("classes.server-handler")
 client:on("ready",function()
   print("starting test")
-  local new_server = server(client,client:getGuild("640251445949759499"),{
+  local new_server = server(client,client:getGuild("766606858667950091"),{
     autosave_frequency = 5,
     default_plugins = {
         "meta",
