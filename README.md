@@ -1,3 +1,5 @@
+[![forthebadge](https://forthebadge.com/images/badges/powered-by-black-magic.svg)](https://forthebadge.com)
+
 # 512mb.org-bot
 yet another 512mb bot. it's running on a discord library for the luvit framework called [Discordia](https://github.com/SinisterRectus/discordia)
 
