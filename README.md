@@ -3,7 +3,7 @@ yet another 512mb bot. it's running on a discord library for the luvit framework
 
 # Self-hosting 
 place the bot token in the "./token" file, change server id in bot.lua to the id of your server.
-compile [luvit](luvit.io) and run bot.lua. 
+compile [luvit](https://luvit.io) and run bot.lua. 
 
 # License 
 ```
