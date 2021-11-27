@@ -1,8 +1,9 @@
 # 512mb.org-bot
-yet another 512mb bot
+yet another 512mb bot. it's running on a discord library for the luvit framework called [Discordia](https://github.com/SinisterRectus/discordia)
 
 # Self-hosting 
 place the bot token in the "./token" file, change server id in bot.lua to the id of your server.
+compile [luvit](luvit.io) and run bot.lua. 
 
 # License 
 ```
