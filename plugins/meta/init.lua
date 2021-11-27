@@ -228,7 +228,7 @@ local c_about = command("about", {
       color = discordia.Color.fromRGB(rand(50,200),rand(50,200),rand(50,200)).value,
       description = "512mb.org is an open-source bot written in Lua. It is based on a beta rewrite version of the Suppa-Bot.",
       fields = {
-        {name = "Source Code: ",value = "https://github.com/yessiest/SuppaBot"},
+        {name = "Source Code: ",value = "https://github.com/512mb-xyz/512mb.org-bot"},
         {name = "Author: ",value = author.tag},
         {name = "Invite: ",value = "Not available yet"}
       },
