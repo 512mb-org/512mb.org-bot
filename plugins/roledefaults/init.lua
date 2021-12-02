@@ -47,7 +47,7 @@ local drolelist = command("drolelist", {
             }}
             for k,v in pairs(config.default_roles) do 
                 table.insert(reply.embed.fields,{
-                    name = v, value = ""
+                    name = tostring(k), value = tostring(v)
                 })
             end
             msg:reply(reply)
