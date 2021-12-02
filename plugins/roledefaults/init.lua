@@ -19,7 +19,7 @@ local droleadd = command("droleadd",{
         end,
 })
 local droledel = command("droledel",{
-        help = "Remove a role from the list of default roles"
+        help = "Remove a role from the list of default roles",
         usage = "droledel <role>",
         args = {
             "role"
