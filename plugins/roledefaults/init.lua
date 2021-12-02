@@ -11,16 +11,19 @@ end)
 local droleadd = command("droleadd",{
 		help = "Add a default role to assign for new users",
         usage = "droleadd <role>",
+        perms = {"administrator"},
         args = {
             "role"
         },
 		exec = function(msg,args,opts)
 	        table.insert(config.default_roles,args[1].id)
+            msg:reply("Added role "..role.name.." to default roles list")
         end,
 })
 local droledel = command("droledel",{
         help = "Remove a role from the list of default roles",
         usage = "droledel <role>",
+        perms = {"administrator"},
         args = {
             "role"
         },
@@ -30,9 +33,28 @@ local droledel = command("droledel",{
                     table.remove(config.default_roles,k)
                 end
             end
+            msg:reply("Removed role "..role.name.." from default roles list")
+        end
+})
+local drolelist = command("drolelist", {
+        help = "List all default roles",
+        usage = "drolelist",
+        perms = {"administrator"}
+        exec = function(msg,args,opts)
+            local reply = { embed = {
+                title = "Default roles:",
+                fields = {}
+            }}
+            for k,v in pairs(config.default_roles) do 
+                table.insert(reply.embed.fields,{
+                    name = v, value = ""
+                })
+            end
+            msg:reply(reply)
         end
 })
 plugin:add_command(droleadd)
 plugin:add_command(droledel)
+plugin:add_commmand(drolelist)
 return plugin
 
