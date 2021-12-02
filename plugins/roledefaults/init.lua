@@ -55,6 +55,6 @@ local drolelist = command("drolelist", {
 })
 plugin:add_command(droleadd)
 plugin:add_command(droledel)
-plugin:add_commmand(drolelist)
+plugin:add_command(drolelist)
 return plugin
 
