@@ -1,7 +1,7 @@
 local plugin_class = import("classes.plugin")
 local command = import("classes.command")
 local plugin = plugin_class("roledefaults")
-config.default_roles = {}
+config.default_roles = config.default_roles or {}
 client:on("memeberJoin",function(member)
     for k,v in pairs(config.default_roles) do 
         member:addRole(v)
