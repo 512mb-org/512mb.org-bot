@@ -17,7 +17,7 @@ local droleadd = command("droleadd",{
         },
 		exec = function(msg,args,opts)
 	        table.insert(config.default_roles,args[1].id)
-            msg:reply("Added role "..role.name.." to default roles list")
+            msg:reply("Added role "..args[1].name.." to default roles list")
         end,
 })
 local droledel = command("droledel",{
@@ -33,7 +33,7 @@ local droledel = command("droledel",{
                     table.remove(config.default_roles,k)
                 end
             end
-            msg:reply("Removed role "..role.name.." from default roles list")
+            msg:reply("Removed role "..args[1].name.." from default roles list")
         end
 })
 local drolelist = command("drolelist", {
