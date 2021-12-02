@@ -39,7 +39,7 @@ local droledel = command("droledel",{
 local drolelist = command("drolelist", {
         help = "List all default roles",
         usage = "drolelist",
-        perms = {"administrator"}
+        perms = {"administrator"},
         exec = function(msg,args,opts)
             local reply = { embed = {
                 title = "Default roles:",
