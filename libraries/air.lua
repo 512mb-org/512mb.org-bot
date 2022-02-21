@@ -11,6 +11,22 @@ air.match_strings = function(string)
   return string,strings
 end
 
+local function parse_strings(thing,strings)
+  --find all strings and replace them with string ids with no spaces
+  local strings = strings or {}
+  local string_count = 0
+  local function get_string(text)
+    string_count = string_count + 1
+    local id = "&;"..tostring(string_count)..";&"
+    strings[string_count] = text
+    return id
+  end
+  thing = thing:gsub("(\")\"",get_string)
+  thing = thing:gsub("(\".-[^\\])\"",get_string)
+  thing = thing:gsub("(\')\'",get_string)
+  thing = thing:gsub("(\'.-[^\\])\'",get_string)
+  return thing,strings
+end
 --this table will look up special types
 special_case = {
   ["voiceChannel"] = function(id,client,guild_id)

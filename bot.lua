@@ -7,22 +7,40 @@ client = discordia.Client()
 --activate the import system
 local import = require("import")(require)
 
+local new_server
+
 --create server
 local server = import("classes.server-handler")
 client:on("ready",function()
   print("starting test")
-  local new_server = server(client,client:getGuild("766606858667950091"),{
-    autosave_frequency = 5,
-    default_plugins = {
-        "meta",
-        "help",
-        "plugins",
-        "esolang",
-        "tools",
-        "reactions"
-    }
-  })
+  if not new_server then
+    new_server = server(client,client:getGuild("766606858667950091"),{
+        autosave_frequency = 20,
+        default_plugins = {
+            "meta",
+            "help",
+            "plugins",
+            "esolang",
+            "tools",
+            "reactions",
+            "roledefaults"
+        }
+    })
+    new_server = server(client,client:getGuild("640251445949759499"),{
+        autosave_frequency = 20,
+        default_plugins = {
+            "meta",
+            "help",
+            "plugins",
+            "esolang",
+            "tools",
+            "reactions",
+            "roledefaults"
+        }
+    })
+  end
 end)
+
 
 --load token
 local tempfile = io.open("./token","r")

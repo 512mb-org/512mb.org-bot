@@ -193,12 +193,14 @@ local embed = command("embed",{
 				msg:reply("Invalid embed object")
 				return
 			end
-			local embed_obj,code,err = require("json").decode(embed)
+			local embed_obj,code,err = import("json").decode(embed)
 			if not embed_obj then
 				msg:reply("Error while decoding JSON object: "..tostring(err))
 				return
 			end
-			embed_obj.color = discordia.Color.fromHex(embed_obj.color).value
+            if pcall(discordia.Color.fromHex,embed_obj.color) then
+    			embed_obj.color = discordia.Color.fromHex(embed_obj.color).value
+            end
 			msg:reply({embed = embed_obj})
 		end
 })
