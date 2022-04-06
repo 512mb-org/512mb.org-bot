@@ -65,7 +65,7 @@ function server_handler:__init(client,guild,options)
     end)
   end
   self.client:on("messageCreate",function(msg)
-    if msg.guild.id == self.id then
+    if msg.guild and msg.guild.id == self.id then
       self.command_handler:handle(msg)
     end
   end)
