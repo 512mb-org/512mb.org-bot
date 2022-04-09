@@ -2,6 +2,7 @@ local plugin_class = import("classes.plugin")
 local command = import("classes.command")
 local plugin = plugin_class()
 local markov = require("markov")
+local qalculator = require("libqalculator")
 local markov_instance = markov.new()
 math.randomseed(os.time()+os.clock())
 
@@ -97,53 +98,16 @@ local cards = command("cards",{
 })
 plugin:add_command(cards)
 local calculate = command("calculate",{
-		help = "Calculate maths using lua's interpeter. Math functions from C included, use ``sin(x)`` or ``cos(x)`` for example. Additionally, BitOp module is included with the name ``bit`` (example: ``bit.bnot(1,1)``)",
+		help = "Calculates maths using libqalculate. https://qalculate.github.io/ for more info",
         usage = [[
-calculate <expression>
-``--bit``; ``-b`` - if the output is a number, convert it to binary
-``--hex``; ``-h`` - if the output is a number, convert it to hexadecimal
+calculate "<expression>"
+``-e`` - exact mode
 		]],
 		args = {
 			"string"
 		},
 		exec = function(msg,args,opts)
-			local calculation_coroutine = coroutine.wrap(function()
-				local sandbox = {}
-				sandbox = safe_clone(math,{randomseed = true})
-				sandbox["bit"] = safe_clone(bit,{})
-				local expression = (table.concat(args," ") or "")
-				local exception_keywords = { --this causes too much trouble
-					"while",
-					"function",
-					"for",
-					"if",
-					"then",
-					"do",
-					"end",
-					"repeat",
-					"until"
-				}
-				for k,v in pairs(exception_keywords) do
-					if expression:find("%W"..v.."%W") then
-						msg:reply("Invalid syntax")
-						return
-					end
-				end
-				local state,answer = pcall(load("return "..expression,"calc","t",setmetatable(sandbox,{})))
-				if state then
-					if type(answer) == "number" then
-						if opts["bit"] or opts["b"] then
-							answer = "0b"..to_bit_string(answer)
-						elseif opts["hex"] or opts["h"] then
-							answer = "0x"..bit.tohex(answer)
-						end
-					end
-					msg:reply(tostring(answer))
-				else
-					msg:reply(answer)
-				end
-			end)
-			calculation_coroutine()
+            msg:reply(qalculator.qalc(args[1],opts["e"]))
 		end,
 })
 plugin:add_command(calculate)

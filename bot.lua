@@ -1,4 +1,5 @@
 package.path = "./libraries/?.lua;./libraries/?/init.lua;"..package.path
+package.cpath = "./libraries/?.so;"..package.cpath
 
 --load discordia
 discordia = require("discordia")
