@@ -46,7 +46,7 @@ local pivot = command("pivot",{
       local message = args[1]
       if not message then
         msg:reply("Couldn't find message with id "..args[2])
-        return nil
+        return false
       end
       if not segment.pivots[message.id] then
         print("[REACTIONS] Creating pivot: "..tostring(message.id))
@@ -56,7 +56,7 @@ local pivot = command("pivot",{
         segment.pivots[message.id].buttons = {}
       end
       segment.pivot = segment.pivots[message.id]
-      msg:reply("Pivot message set to "..message.link)
+      return true
     end
   })
 plugin:add_command(pivot)
@@ -80,18 +80,18 @@ local role_toggle = command("role-toggle",{
     exec = function(msg,args,opts)
       if not segment.pivot then
         msg:reply("Pivot not selected. Use "..globals.prefix.."pivot to select it and then try again")
-        return nil
+        return false
       end
       local emoji = getEmoji(args[1])
       local channel = guild:getChannel(segment.pivot.channel)
       if not channel then
         msg:reply("Something went horribly wrong, but it's not your fault. This incident has been (hopefully) reported")
-        return nil
+        return false
       end
       local message = channel:getMessage(segment.pivot.message)
       if not message then
         msg:reply("Something went horribly wrong, but it's not your fault. This incident has been (hopefully) reported")
-        return nil
+        return false
       end
       print("[REACTIONS] Adding role-toggle listener")
       local grabEmoji = function(reaction)
@@ -99,13 +99,15 @@ local role_toggle = command("role-toggle",{
           type = "role-toggler",
           role = tostring(args[2].id)
         }
-        msg:reply("Role toggler added successfully")
       end
       message:removeReaction(emoji,client.user.id)
       client:once("reactionAdd",grabEmoji)
       if not message:addReaction(emoji) then
         client:removeListener("reactionAdd",grabEmoji)
         msg:reply("Couldn't add reaction - emoji might be invalid")
+        return false
+      else
+        return true
       end
     end
   })
@@ -126,24 +128,24 @@ local remove_reaction = command("remove-reaction",{
       local channel = guild:getChannel(segment.pivot.channel)
       if not channel then
         msg:reply("Something went horribly wrong, but it's not your fault. This incident has been (hopefully) reported")
-        return nil
+        return false
       end
       local message = channel:getMessage(segment.pivot.message)
       if not message then
         msg:reply("Something went horribly wrong, but it's not your fault. This incident has been (hopefully) reported")
-        return nil
+        return false
       end
       print("[REACTIONS] Removing reaction listener")
       if args[1] then
         local emoji = getEmoji(args[1])
         message:removeReaction(emoji,client.user.id)
         segment.pivot.buttons[((type(emoji) == "table") and emoji.id) or emoji] = nil
-        msg:reply("Action successfully removed")
+        return true
       else
         message:clearReactions()
         segment.pivots[tostring(message.id)] = nil
         segment.pivot = nil
-        msg:reply("Pivot successfully removed")
+        return true
       end
     end
   })
@@ -168,18 +170,18 @@ local toggle = command("toggle",{
     exec = function(msg,args,opts)
       if not segment.pivot then
         msg:reply("Pivot not selected. Use "..globals.prefix.."pivot to select it and then try again")
-        return nil
+        return false
       end
       local emoji = getEmoji(args[1])
       local channel = guild:getChannel(segment.pivot.channel)
       if not channel then
         msg:reply("Something went horribly wrong, but it's not your fault. This incident has been (hopefully) reported")
-        return nil
+        return false
       end
       local message = channel:getMessage(segment.pivot.message)
       if not message then
         msg:reply("Something went horribly wrong, but it's not your fault. This incident has been (hopefully) reported")
-        return nil
+        return false
       end
       print("[REACTIONS] Adding toggle listener")
       local grabEmoji = function(reaction)
@@ -188,13 +190,15 @@ local toggle = command("toggle",{
           on = args[2],
           off = args[3],
         }
-        msg:reply("Toggler added successfully")
       end
       message:removeReaction(emoji,client.user.id)
       client:once("reactionAdd",grabEmoji)
       if not message:addReaction(emoji) then
         client:removeListener("reactionAdd",grabEmoji)
         msg:reply("Couldn't add reaction - emoji might be invalid")
+        return false
+      else
+        return true
       end
     end
   })
@@ -218,18 +222,18 @@ local button = command("button",{
     exec = function(msg,args,opts)
       if not segment.pivot then
         msg:reply("Pivot not selected. Use "..globals.prefix.."pivot to select it and then try again")
-        return nil
+        return false
       end
       local emoji = getEmoji(args[1])
       local channel = guild:getChannel(segment.pivot.channel)
       if not channel then
         msg:reply("Something went horribly wrong, but it's not your fault. This incident has been (hopefully) reported")
-        return nil
+        return false
       end
       local message = channel:getMessage(segment.pivot.message)
       if not message then
         msg:reply("Something went horribly wrong, but it's not your fault. This incident has been (hopefully) reported")
-        return nil
+        return false
       end
       print("[REACTIONS] Adding button listener")
       local grabEmoji = function(reaction)
@@ -237,13 +241,15 @@ local button = command("button",{
           type = "button",
           on = args[2],
         }
-        msg:reply("Button added successfully")
       end
       message:removeReaction(emoji,client.user.id)
       client:once("reactionAdd",grabEmoji)
       if not message:addReaction(emoji) then
         client:removeListener("reactionAdd",grabEmoji)
         msg:reply("Couldn't add reaction - emoji might be invalid")
+        return false
+      else
+        return true
       end
     end
   })
@@ -252,7 +258,7 @@ plugin:add_command(button)
 local buttonOn = function(message,hash,userID)
   if not message then
     log("ERROR","Attempted to find a deleted message")
-    return
+    return 
   end
   if segment.pivots[tostring(message.id)] and userID ~= client.user.id  then
     local current_pivot = segment.pivots[tostring(message.id)]

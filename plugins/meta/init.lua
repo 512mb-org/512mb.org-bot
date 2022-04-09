@@ -250,11 +250,11 @@ local c_server = command("server", {
       title = msg.guild.name,
       description = msg.guild.description,
       fields = {
-        {name = "Members",value = msg.guild.totalMemberCount,inline = true},
-        {name = "Owner",value = (msg.guild.owner and msg.guild.owner.user.tag..":"..msg.guild.owner.user.id),inline = true},
-        {name = "Created At",value = os.date("!%c",msg.guild.createdAt).." (UTC+0)",inline = true},
-        {name = "Text Channels",value = msg.guild.textChannels:count(),inline = true},
-        {name = "Voice Channels",value = msg.guild.voiceChannels:count(),inline = true}
+        {name = "Members",value = msg.guild.totalMemberCount},
+        {name = "Owner",value = (msg.guild.owner and msg.guild.owner.user.tag..":"..msg.guild.owner.user.id) or msg.guild.ownerId},
+        {name = "Created At",value = os.date("!%c",msg.guild.createdAt).." (UTC+0)"},
+        {name = "Text Channels",value = msg.guild.textChannels:count()},
+        {name = "Voice Channels",value = msg.guild.voiceChannels:count()}
       }
     }})
   end,

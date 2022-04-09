@@ -127,7 +127,7 @@ function command:exec(message,args,opts)
   local exec = self.callback
   if not self.callback then
     error("Callback not set for command "..self.name)
-  end
+  end 
   if self.decorator then
     self.callback = self.decorator(self.callback)
   end
@@ -139,12 +139,30 @@ function command:exec(message,args,opts)
     content = message.content:sub(strend+1,-1)
   end
   if self:check_permissions(message) then
+    if self.options.typing_decorator then
+        message.channel:broadcastTyping()
+    end
     local status,args,opts,err = import("air").parse(content,self.args,message.client,message.guild.id)
     if status then
-      self.callback(message,args,opts)
+      local callst,status,response = pcall(self.callback,message,args,opts)
+      if callst then
+        if type(status) == "boolean" then
+          if status then
+            message:addReaction("✅")
+          else
+            message:addReaction("❌")
+          end
+        end
+      else
+        message:addReaction("⚠️")
+        message:reply("An internal error occured: "..status)
+      end
     else
+      message:addReaction("❌")
       message:reply(err)
     end
+  else
+    message:addReaction("❌")
   end
 end
 --add decorators for the callback

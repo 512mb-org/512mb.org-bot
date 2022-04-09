@@ -1,0 +1,6 @@
+[submodule "libraries/libraries/luaqalc"]
+	path = libraries/libraries/luaqalc
+	url = https://512mb.org/git/Yessiest/luaqalculator
+[submodule "libraries/luaqalc"]
+	path = libraries/luaqalc
+	url = https://512mb.org/git/Yessiest/luaqalculator

@@ -2,3 +2,4 @@
 /servers
 /discordia.log
 /gateway.json
+*.so

@@ -161,14 +161,21 @@ local pfp = command("pfp",{
 })
 plugin:add_command(pfp)
 local markov = command("markov",{
-		help = "Generate some text using markov chains",
-        usage = "markov <text to start with>",[[
+		help = { embed = {
+            title = "Generate some text using markov chains",
+            description = "Generates text using the markov chain rule applied to a predefined set of words",
+            fields = {
+                {name = "Usage: ", value = "markov <text to start with>"},
+                {name = "Options: ", value = [[
 --preset=<preset> - Select a text preset. Currently available:
 ``default`` - Generated from a wikipedia page on markov chains
 ``freud`` - The largest one, generated from a page on Sigmund Freud
 ``reddit`` - Generated from reddit comments
 ``travisscott`` - Generated from transcript of a video by PlasticPills on travis scott burger
-]],
+]]              },
+                {name = "Perms: ", value = "any"}
+            }
+        }},
 		exec = function(msg,args,opts)
 			local preset,code,err = import("file").readJSON("./resources/"..(opts["preset"] or "default"):match("%w+")..".json",{system_failed = true})
 			if preset.system_failed then
