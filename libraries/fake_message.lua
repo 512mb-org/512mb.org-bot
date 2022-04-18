@@ -33,10 +33,10 @@ return function(message,overrides)
     tts = message.tts,
     type = message.type,
     webhookId = message.webhookId,
-    addReaction = function(...)
+    addReaction = function(self,...)
       message:addReaction(...)
     end,
-    removeReaction = function(...)
+    removeReaction = function(self,...)
       message:removeReaction(...)
     end,
     emulated = true

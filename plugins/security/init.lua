@@ -28,7 +28,9 @@ local grantrole = command("grant-role",{
         "role"
     },
     exec = function(msg,args,opts)
-        return ((args[2] and msg.guild:getMember(args[2])) or msg.member):addRole(args[1])
+        return ((args[2] and 
+                    msg.guild:getMember(args[2]:match("%d+"))
+                ) or msg.member):addRole(args[1])
     end
 })
 plugin:add_command(grantrole)
@@ -50,7 +52,9 @@ local revokerole = command("revoke-role",{
         "role"
     },
     exec = function(msg,args,opts)
-        return ((args[2] and msg.guild:getMember(args[2])) or msg.member):removeRole(args[1])
+        return ((args[2] and 
+                    msg.guild:getMember(args[2]:match("%d+"))) 
+                or msg.member):removeRole(args[1])
     end
 })
 plugin:add_command(revokerole)

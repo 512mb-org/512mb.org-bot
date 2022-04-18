@@ -56,6 +56,7 @@ local function remove_alias(name)
   if config.aliases[name] then
     config.aliases[name] = nil
     plugin:remove_command(aliases[name])
+    aliases[name] = nil
     return true
   else
     return false
