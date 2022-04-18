@@ -34,10 +34,10 @@ return function(message,overrides)
     type = message.type,
     webhookId = message.webhookId,
     addReaction = function(...)
-      message:reactionAdd(...)
+      message:addReaction(...)
     end,
     removeReaction = function(...)
-      message:reactionRemove(...)
+      message:removeReaction(...)
     end,
     emulated = true
   }
