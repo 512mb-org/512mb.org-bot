@@ -97,6 +97,9 @@ local rw_head = function(field,commands)
   function RW_head:pop(value)
     local value = self.stack[#self.stack]
     table.remove(self.stack,#self.stack)
+    if not value then
+        return 0
+    end
     return value
   end
   function RW_head:walk()
