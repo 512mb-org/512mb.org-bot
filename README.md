@@ -1,4 +1,4 @@
-[![forthebadge](https://forthebadge.com/images/badges/powered-by-black-magic.svg)](https://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/powered-by-black-magic.svg)](https://forthebadge.com) [![made-with-luvit.svg](https://512mb.org/git/Yessiest/badges/raw/branch/master/badges/made-with-luvit.svg)](https://forthebadge.com/generator/)
 
 # 512mb.org-bot
 yet another 512mb bot. it's running on a discord library for the luvit framework called [Discordia](https://github.com/SinisterRectus/discordia)
