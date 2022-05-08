@@ -72,16 +72,16 @@ cron._compare_tables = function(d1,d2)
 end
 -- Token types, in (regex, type, preprocessor) format
 local token_types = {
-    {"@(%w+)", "directive", function(text)
+    {"^@(%w+)$", "directive", function(text)
         return text 
     end},
-    {"(%d%d)%.(%d%d)%.(%d%d%d?%d?)","date",function(d,m,y)
+    {"^(%d%d)%.(%d%d)%.(%d%d%d?%d?)$","date",function(d,m,y)
         return cron._date(d,m,y)
     end},
-    {"(%d%d):(%d%d)","time",function(h,m)
+    {"^(%d%d):(%d%d)$","time",function(h,m)
         return cron._time(h,m)
     end},
-    {"(%d*,.*)", "any_list",function(text)
+    {"^(%d+,[%d,]+)$", "any_list",function(text)
         return function(num)
             local status = false
             text:gsub("%d*",function(number)
@@ -92,27 +92,27 @@ local token_types = {
             return status
         end
     end},
-    {"%*/(%d+)", "any_modulo", function(text)
+    {"^%*/(%d+)$", "any_modulo", function(text)
         return function(num)
             return (num % tonumber(text) == 0)
         end
     end},
-    {"%*", "any", function()
+    {"^%*$", "any", function()
         return function()
             return true 
         end
     end},
-    {"%d+", "number", function(text) 
+    {"^%d+$", "number", function(text) 
         return function(num)
             return num == tonumber(text) 
         end
     end},
     {"^%s*$","spacer", function(text) return text end},  
-    {"%S+","command", function(text) return text end} 
+    {"^%S+$","command", function(text) return text end} 
 }
 -- Valid argument matching predicates for directives
 local predtypes = {
-    {"([<>])(=?)(%d*)","comparison",function(lm,eq,number)
+    {"^([<>])(=?)(%d+)$","comparison",function(lm,eq,number)
         local number = tonumber(number)
         return function(input)
             local input = tonumber(input)
@@ -122,42 +122,42 @@ local predtypes = {
                    ((lm == "<") and number > input)
         end
     end},
-    {"/([^/]*)/","regex",function(regex)
+    {"^/([^/]*)/$","regex",function(regex)
         return function(input)
             return (tostring(input):match(regex) ~= nil)
         end
     end},
-    {"\"([^\"]*)\"","string",function(str)
+    {"^\"([^\"]*)\"$","string",function(str)
         return function(input)
             return str==tostring(input)
         end
     end},
-    {"'([^']*)'","string",function(str)
+    {"^'([^']*)'$","string",function(str)
         return function(input)
             return str==tostring(input)
         end
     end},
-    {"%d+","number",function(number)
+    {"^%d+$","number",function(number)
         return function(input)
             return number == tostring(input)
         end
     end},
-    {"%*","any",function()
+    {"^%*$","any",function()
         return function()
             return true
         end
     end},
-    {":","delimiter",function()
+    {"^:$","delimiter",function()
         return function()
             error("Delimiter is not a predicate!")
         end
     end},
-    {"%s+","spacer",function()
+    {"^%s+$","spacer",function()
         return function()
             error("Spacer is not a predicate!")
         end
     end},
-    {"%S+","command", function(text) 
+    {"^%S+$","command", function(text) 
         return function()
             return text 
         end
