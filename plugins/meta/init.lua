@@ -333,6 +333,20 @@ local c_echo = command("echo",{
 })
 plugin:add_command(c_echo)
 
+local c_pingself = command("pingself",{
+    args = {
+     "string"
+    },
+    exec = function(msg,args,opts)
+        local text = purify_strings(msg, table.concat(args," "))
+        if opts["unescape"] or opts["u"] then
+            text = text:gsub("\\","")
+        end
+        msg:reply("<@"..tostring(msg.member.id).."> "..text)
+    end,
+})
+plugin:add_command(c_pingself)
+
 plugin.removal_callback = function()
   for k,v in pairs(config.aliases) do
     remove_alias(k)
