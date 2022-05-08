@@ -98,7 +98,7 @@ local infractions = command("infractions", {
         title = "List user infractions",
         description = "Infractions include kicks, bans, mutes and warnings.",
         fields = {
-            {name = "Usage: ", value = "infractions <user> [<page>]"},
+            {name = "Usage: ", value = "infractions <user> [<startfrom>]"},
             {name = "Perms: ", value = "kick_members"},
             {name = "Options: ", value = "--type=(warn default,ban,kick)"}
         }
@@ -123,13 +123,13 @@ local infractions = command("infractions", {
             title = "Infractions list for "..args[1].name,
             fields = {},
             footer = {
-                text = "Total: "..tostring(tonumber(v[1])).." | Page: "..tostring(page)
+                text = "Total: "..tostring(tonumber(v[1])).." | Starting from: "..tostring(page)
 
             }
         }}
         -- Prepare a statement to match infractions
         local pagedb = db:prepare("SELECT * FROM infractions WHERE action = ? AND user = ? AND id > ? ORDER BY id LIMIT 5")
-        local pagecomm = pagedb:reset():bind(dtype,tostring(args[1].id),5*page)
+        local pagecomm = pagedb:reset():bind(dtype,tostring(args[1].id),page)
         -- Keep matching infractions as long as something is returned
         local pagedata = pagecomm:step()
         while pagedata ~= nil do
