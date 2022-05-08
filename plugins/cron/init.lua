@@ -137,12 +137,9 @@ local delay = command("delay",{
       description = "Delay fromat is <number><unit>, where unit is one of the follwing:\n\"h\" - hour,\n\"m\" - minute,\n\"d\" - day,\n\"w\" - week,\n\"y\" - year",
       fields = {
         {name = "Usage:",value = "delay <delayformat> <command>"},
-        {name = "Perms:",value = "administrator"},
+        {name = "Perms:",value = "any"},
       }
     }},
-    perms = {
-        "administrator"
-    },
     exec = function(msg,args,opts)
         local format = args[1]
         table.remove(args,1)
@@ -158,12 +155,9 @@ local events_comm = command("events",{
       description = "nuff said.",
       fields = {
         {name = "Usage:",value = "events <page>"},
-        {name = "Perms:",value = "administrator"},
+        {name = "Perms:",value = "any"},
       }
     }},
-    perms = {
-        "administrator"
-    },
     args = {
         "number"
     },
@@ -220,18 +214,15 @@ local remove_event= command("remove-event",{
       description = "nuff said.",
       fields = {
         {name = "Usage:",value = "remove-event <id>"},
-        {name = "Perms:",value = "administrator"},
+        {name = "Perms:",value = "any"},
       }
     }},
-    perms = {
-        "administrator"
-    },
     args = {
         "string"
     },
     exec = function(msg,args,opts)
         for k,v in pairs(config.events.timer) do
-            if k == args[1] then
+            if (k == args[1]) and (v.user == tostring(msg.author.id)) then
                 config.events.timer[k] = nil
                 events.timer[k] = nil
                 return true
@@ -239,7 +230,7 @@ local remove_event= command("remove-event",{
         end
         for evname,evtype in pairs(config.events.event) do
             for k,v in pairs(evtype) do
-                if k == args[1] then
+                if (k == args[1]) and (v.user == tostring(msg.author.id)) then
                     config.events.event[evname][k] = nil
                     events.event[evname][k] = nil
                     return true
