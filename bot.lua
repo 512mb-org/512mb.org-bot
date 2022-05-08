@@ -8,27 +8,33 @@ client = discordia.Client()
 --activate the import system
 local import = require("import")(require)
 
+local server_ids = {
+    "640251445949759499"
+}
 local servers = {}
 
 --create server
 local server = import("classes.server-handler")
 client:on("ready",function()
   print("starting test")
-  if not servers["640251445949759499"] then
-    servers["640251445949759499"] = server(client,client:getGuild("640251445949759499"),{
-        path = os.getenv("HOME").."/bot-savedata/640251445949759499/",
-        autosave_frequency = 20,
-        default_plugins = {
-            "meta",
-            "help",
-            "plugins",
-            "esolang",
-            "tools",
-            "reactions",
-            "roledefaults",
-            "security"
-        }
-    })
+  for _,id in pairs(server_ids) do
+    if not servers[id] then
+        servers[id] = server(client,client:getGuild(id),{
+            path = os.getenv("HOME").."/bot-savedata/"..id.."/",
+            autosave_frequency = 20,
+            default_plugins = {
+                "meta",
+                "help",
+                "plugins",
+                "esolang",
+                "tools",
+                "reactions",
+                "roledefaults",
+                "security",
+                "cron"
+            }
+        })
+    end
   end
 end)
 

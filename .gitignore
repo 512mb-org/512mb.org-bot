@@ -2,5 +2,8 @@
 /servers
 /discordia.log
 /gateway.json
+/luvit
+/lit
+/luvi
 *.so
 *.o
