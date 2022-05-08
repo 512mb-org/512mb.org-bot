@@ -33,6 +33,86 @@ if not config.events then
     }
 end
 
+local create_event = function(msg,cronjob,create_entry)
+    local arg = cronjob
+    local func,functype = cron.parse_line(arg)
+    if not func then
+        msg:reply(functype)
+        return false
+    end
+    local hash = md5.sumhexa(arg):sub(1,16)
+    if functype == "directive" then
+        local event_name = arg:match("^@(%w+)")
+        if not events.event[event_name] then events.event[event_name] = {} end
+        events.event[event_name][hash] = {
+            comm = func,
+            channel = tostring(msg.channel.id),
+            id = tostring(msg.id),
+            user = tostring(msg.author.id),
+            type = functype
+        }
+        if create_entry then return true end
+        if not config.events.event[event_name] then config.events.event[event_name] = {} end
+        config.events.event[event_name][hash] = {
+            comm = arg,
+            channel = tostring(msg.channel.id),
+            id = tostring(msg.id),
+            user = tostring(msg.author.id),
+            type = functype
+        }
+    else
+        events.timer[hash] = {
+            comm = func,
+            channel = tostring(msg.channel.id),
+            id = tostring(msg.id),
+            user = tostring(msg.author.id),
+            type = functype
+        }
+        if create_entry then return true end
+        config.events.timer[hash] = {
+            comm = arg,
+            channel = tostring(msg.channel.id),
+            id = tostring(msg.id),
+            user = tostring(msg.author.id),
+            type = functype
+        }
+    end
+    return true
+end
+
+-- load timer events
+for k,v in pairs(config.events.timer) do
+    local channel = client:getChannel(v.channel)
+    if channel then
+        local message = channel:getMessage(v.id)
+        if message then
+            create_event(message,v.comm,true)
+        else
+            log("ERROR","No message with id "..v.id)
+        end
+    else
+        log("ERROR","No channel with id "..v.channel)
+    end
+end
+
+-- load named events
+for _,evtype in pairs(config.events.event) do
+    events.event[_] = {}
+    for k,v in pairs(evtype) do
+        local channel = client:getChannel(v.channel)
+        if channel then
+            local message = channel:getMessage(v.id)
+            if message then
+                create_event(message,v.comm,true)
+            else
+                log("ERROR","No message with id "..v.id)
+            end
+        else
+            log("ERROR","No channel with id "..v.channel)
+        end
+    end
+end
+
 local event = command("event",{
     help = {embed={
       title = "Add a cron event",
@@ -46,48 +126,7 @@ local event = command("event",{
         "administrator"
     },
     exec = function(msg,args,opts)
-        local arg = table.concat(args," ")
-        local func,functype = cron.parse_line(arg)
-        if not func then
-            msg:reply(functype)
-            return false
-        end
-        local hash = md5.sumhexa(arg):sub(1,16)
-        if functype == "directive" then
-            local event_name = arg:match("^@(%w+)")
-            if not events.event[event_name] then events.event[event_name] = {} end
-            events.event[event_name][hash] = {
-                func,
-                channel = tostring(msg.channel.id),
-                id = tostring(msg.id),
-                user = tostring(msg.author.id),
-                type = functype
-            }
-            if not config.events.event[event_name] then config.events.event[event_name] = {} end
-            config.events.event[event_name][hash] = {
-                arg,
-                channel = tostring(msg.channel.id),
-                id = tostring(msg.id),
-                user = tostring(msg.author.id),
-                type = functype
-            }
-        else
-            events.timer[hash] = {
-                func,
-                channel = tostring(msg.channel.id),
-                id = tostring(msg.id),
-                user = tostring(msg.author.id),
-                type = functype
-            }
-            config.events.timer[hash] = {
-                arg,
-                channel = tostring(msg.channel.id),
-                id = tostring(msg.id),
-                user = tostring(msg.author.id),
-                type = functype
-            }
-        end
-        return true
+        return create_event(msg,table.concat(args," "))
     end
 })
 plugin:add_command(event)
@@ -108,32 +147,12 @@ local delay = command("delay",{
         local format = args[1]
         table.remove(args,1)
         local arg = os.date("%d.%m.%y %H:%M ",cron.convert_delay(format))..table.concat(args," ")
-        local func,functype = cron.parse_line(arg)
-        if not func then
-            msg:reply(functype)
-            return false
-        end
-        local hash = md5.sumhexa(arg):sub(1,16)
-        events.timer[hash] = {
-            func,
-            channel = tostring(msg.channel.id),
-            id = tostring(msg.id),
-            user = tostring(msg.author.id),
-            type = functype
-        }
-        config.events.timer[hash] = {
-            arg,
-            channel = tostring(msg.channel.id),
-            id = tostring(msg.id),
-            user = tostring(msg.author.id),
-            type = functype
-        }
-        return true 
+        return create_event(msg,arg)
     end
 })
 plugin:add_command(delay)
 
-local delay = command("events",{
+local events_comm = command("events",{
     help = {embed={
       title = "View your running events",
       description = "nuff said.",
@@ -162,8 +181,8 @@ local delay = command("events",{
             end
         end
         local stop = false
-        for k,v in pairs(config.events.event) do
-            for _,events in pairs(v) do
+        for _,evtype in pairs(config.events.event) do
+            for k,v in pairs(evtype) do
                 if v.user == tostring(msg.author.id) then
                     table.insert(uevents,v)
                     table.insert(uhashes,k)
@@ -188,17 +207,55 @@ local delay = command("events",{
             if not uhashes[I] then
                 break
             end
-            message.embed.description = message.embed.description.."["..uhashes[I].."] `"..uevents[I][1].."`\n"
+            message.embed.description = message.embed.description.."["..uhashes[I].."] `"..uevents[I].comm.."`\n"
         end
         msg:reply(message)
     end
 })
-plugin:add_command(delay)
+plugin:add_command(events_comm)
+
+local remove_event= command("remove-event",{
+    help = {embed={
+      title = "Remove an event",
+      description = "nuff said.",
+      fields = {
+        {name = "Usage:",value = "remove-event <id>"},
+        {name = "Perms:",value = "administrator"},
+      }
+    }},
+    perms = {
+        "administrator"
+    },
+    args = {
+        "string"
+    },
+    exec = function(msg,args,opts)
+        for k,v in pairs(config.events.timer) do
+            if k == args[1] then
+                config.events.timer[k] = nil
+                events.timer[k] = nil
+                return true
+            end
+        end
+        for evname,evtype in pairs(config.events.event) do
+            for k,v in pairs(evtype) do
+                if k == args[1] then
+                    config.events.event[evname][k] = nil
+                    events.event[evname][k] = nil
+                    return true
+                end
+            end
+        end
+        msg:reply("Not found")
+        return false
+    end
+})
+plugin:add_command(remove_event)
 
 local timer = discordia.Clock()
 timer:on("min",function()
     for k,v in pairs(events.timer) do
-        local status,command = v[1](os.date("*t"))
+        local status,command = v.comm(os.date("*t"))
         if status then
             exec(v,command)
             if v.type == "onetime" then
@@ -210,16 +267,20 @@ timer:on("min",function()
 end)
 
 client:on("messageCreate",function(msg)
+    if (not msg.guild) or (tostring(msg.guild.id) ~= tostring(id)) then
+        return
+    end
     local content = msg.content
-    local user = msg.author.name
+    local user = msg.author.id
+    local channelid = msg.channel.id
     for k,v in pairs(events.event.message or {}) do
-        local status,command = v[1]({content,user})
+        local status,command = v.comm({content,user,channelid})
         if status then
             exec(v,command)
         end
     end
     for k,v in pairs(events.event.messageOnce or {}) do
-        local status,command = v[1]({content,user})
+        local status,command = v.comm({content,user,channelid})
         events.event.messageOnce[k] = nil
         config.events.event.messageOnce[k] = nil
     end
