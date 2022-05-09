@@ -5,6 +5,11 @@ local plugin = pluginc("help")
 
 local db = sql.open(server.config_path.."sec.sqlite")
 
+local safe_regex = function(str,pattern)
+    local status,ret = pcall(string.match,str,pattern)
+    if status then return ret end
+end
+
 if not db:rowexec("SELECT name FROM sqlite_master WHERE type='table' AND name='infractions'") then
     db:exec [[
 CREATE TABLE infractions(id INTEGER PRIMARY KEY AUTOINCREMENT, user TEXT, desc TEXT, action TEXT, timestamp INTEGER);
@@ -65,11 +70,11 @@ local warn = command("warn",{
       description = "nuff said.",
       fields = {
         {name = "Usage:",value = "warn <user> <reason>"},
-        {name = "Perms:",value = "kick_members"},
+        {name = "Perms:",value = "kickMembers"},
       }
     }},
     perms = {
-        "kick_members"
+        "kickMembers"
     },
     args = {
         "member",
@@ -99,12 +104,12 @@ local infractions = command("infractions", {
         description = "Infractions include kicks, bans, mutes and warnings.",
         fields = {
             {name = "Usage: ", value = "infractions <user> [<startfrom>]"},
-            {name = "Perms: ", value = "kick_members"},
+            {name = "Perms: ", value = "kickMembers"},
             {name = "Options: ", value = "--type=(warn default,ban,kick)"}
         }
     }},
     perms = {
-        "kick_members"
+        "kickMembers"
     },
     args = {
         "member",
@@ -143,5 +148,67 @@ local infractions = command("infractions", {
     end
 })
 plugin:add_command(infractions)
+
+local purge = command("purge",{
+    help = { embed = {
+        title = "Purge a number of messages",
+        description = "nuff said.",
+        fields = {
+            {name = "Usage: ", value = "purge <number>"},
+            {name = "Perms: ", value = "manageMessages"},
+            {name = "Options: ", value = "`--regex (regex)` - match content against regex; \n`--user (user)` - match user against id/name; \n`-w` - match webhook messages"}
+        }
+    }},
+    perms = {
+        "manageMessages"
+    },
+    args = {
+        "number"
+    },
+    exec = function(msg,args,opts)
+        local messages = {}
+        local messageCount = args[1]
+        local deletedMessageCount = 0
+        local last_id = nil
+        local matchfunc = function(v)
+            last_id = v.id
+            local matches = true
+            if opts["regex"] and (not (
+                (type(v.content) == "string") and
+                (safe_regex(v.content,opts["regex"])))) then
+                    matches = false
+            end
+            if opts["user"] and (not (
+                (v.author.id and (tostring(v.author.id) == opts["user"])) or
+                (v.author.name == opts["user"]))) then
+                    matches = false
+            end
+            if opts["w"] and (not v.webhookId) then
+                    matches = false
+            end
+            if matches then
+                table.insert(messages,v.id)
+                deletedMessageCount = deletedMessageCount + 1
+            end
+        end
+        local messages_fetched = msg.channel:getMessages(args[1]%100)
+        if messages_fetched then
+            messages_fetched:forEach(matchfunc)
+        end
+        msg.channel:bulkDelete(messages)
+        messageCount = messageCount-(args[1]%100)
+        while messageCount > 0 do
+            messages = {}
+            messages_fetched = msg.channel:getMessagesAfter(last_id,100)
+            if messages_fetched then
+                messages_fetched:forEach(matchfunc)
+            end
+            msg.channel:bulkDelete(messages)
+            messageCount = messageCount - 100
+        end
+        msg:reply("Deleted "..tostring(deletedMessageCount).." messages.")
+    end
+})
+plugin:add_command(purge)
 
 return plugin

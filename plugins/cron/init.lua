@@ -116,7 +116,7 @@ end
 local event = command("event",{
     help = {embed={
       title = "Add a cron event",
-      description = "Description coming soon",
+      description = "https://github.com/512mb-org/512mb.org-bot/wiki/Events-and-cronjobs",
       fields = {
         {name = "Usage:",value = "event ..."},
         {name = "Perms:",value = "administrator"},

@@ -9,6 +9,11 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ]]
 
+local safe_regex = function(str,pattern)
+    local status,ret = pcall(string.match,str,pattern)
+    if status then return ret end
+end
+
 -- Adjustments for lua5.1
 if _VERSION=="Lua 5.1" then
     table.unpack = unpack
@@ -124,7 +129,7 @@ local predtypes = {
     end},
     {"^/([^/]*)/$","regex",function(regex)
         return function(input)
-            return (tostring(input):match(regex) ~= nil)
+            return (safe_regex(tostring(input),regex) ~= nil)
         end
     end},
     {"^\"([^\"]*)\"$","string",function(str)
