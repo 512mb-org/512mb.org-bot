@@ -146,7 +146,7 @@ local delay = command("delay",{
     args = {
         "string",
         "string"
-    }
+    },
     exec = function(msg,args,opts)
         local format = args[1]
         table.remove(args,1)
