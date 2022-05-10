@@ -125,6 +125,9 @@ local event = command("event",{
     perms = {
         "administrator"
     },
+    args = {
+        "string"
+    },
     exec = function(msg,args,opts)
         return create_event(msg,table.concat(args," "))
     end
@@ -140,6 +143,10 @@ local delay = command("delay",{
         {name = "Perms:",value = "any"},
       }
     }},
+    args = {
+        "string",
+        "string"
+    }
     exec = function(msg,args,opts)
         local format = args[1]
         table.remove(args,1)
