@@ -2,6 +2,8 @@
 local acl = import("classes.acl")
 local command_acl = acl:extend("CommandACL")
 local table_utils = import("table-utils")
+local discordia = import("discordia")
+local enum_perms = discordia.enums.permission
 --The following method extends the ACL class to work with rule-specific features,
 --such as the role position
 function command_acl:check_group(roles)
@@ -34,7 +36,7 @@ end
 function command_acl:check_perm(perms)
    local output = true
    for k,v in pairs(self.perm_rules) do
-     if not perms[v] then
+     if (bit.band(perms[1],enum_perms[v]) == 0) then
        output = false
      end
    end

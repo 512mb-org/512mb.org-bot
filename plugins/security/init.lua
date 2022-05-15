@@ -26,7 +26,7 @@ local grantrole = command("grant-role",{
         {name = "Options:",value = "-q - quiet (don't print the result)"}
       }
     }},
-    perms = {
+    permss = {
         "administrator"
     },
     args = {
@@ -50,7 +50,7 @@ local revokerole = command("revoke-role",{
         {name = "Options:",value = "-q - quiet (don't print the result)"}
       }
     }},
-    perms = {
+    permss = {
         "administrator"
     },
     args = {

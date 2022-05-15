@@ -35,8 +35,8 @@ function command:__init(name,callback)
         self.rules:set_group_rule(k,v)
       end
     end
-    if callback.perm then
-      self.rules:set_perm_rules(callback.perm)
+    if callback.perms then
+      self.rules:set_perm_rules(callback.perms)
     end
     if callback.help then
       self:set_help(callback.help,callback.usage)
