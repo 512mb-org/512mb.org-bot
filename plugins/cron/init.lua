@@ -125,8 +125,6 @@ end
 
 local remove_user_event = function(user_id,id)
     for k,v in pairs(config.events.timer) do
-        print(v.user,tostring(user_id))
-        print(k,id,compids(k,id))
         if compids(k,id) and (v.user == tostring(user_id)) then
             config.events.timer[k] = nil
             events.timer[k] = nil
@@ -135,8 +133,6 @@ local remove_user_event = function(user_id,id)
     end
     for evname,evtype in pairs(config.events.event) do
         for k,v in pairs(evtype) do
-            print(v.user,tostring(user_id))
-            print(k,id,compids(k,id))
             if compids(k,id) and (v.user == tostring(user_id)) then
                 config.events.event[evname][k] = nil
                 events.event[evname][k] = nil
@@ -360,8 +356,11 @@ client:on("messageCreate",function(msg)
     end
     for k,v in pairs(events.event.messageOnce or {}) do
         local status,command = v.comm({content,user,channelid})
-        events.event.messageOnce[k] = nil
-        config.events.event.messageOnce[k] = nil
+        if status then
+            exec(v,command)
+            events.event.messageOnce[k] = nil
+            config.events.event.messageOnce[k] = nil
+        end
     end
 end)
 
