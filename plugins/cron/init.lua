@@ -12,12 +12,16 @@ local events = {
 local exec = function(v,command)
     local channel = client:getChannel(v.channel)
     if not channel then
-        log("ERROR","Unable to retrieve timer channel: "..tostring(v.channel))
+        log("ERROR","Unable to retrieve event channel: "..tostring(v.channel))
         return
     end
     local msg = channel:getMessage(v.id)
     if not msg then
-        log("ERROR","Unable to retrieve timer message: "..tostring(v.id))
+        log("ERROR","Unable to retrieve event message: "..tostring(v.id))
+        return
+    end
+    if not msg.member then
+        log("ERROR","Unable to retrieve event creator: "..tostring(v.user.id))
         return
     end
     command_handler:handle(fake_message(msg,{
@@ -341,28 +345,18 @@ timer:on("min",function()
     end
 end)
 
-client:on("messageCreate",function(msg)
-    if (not msg.guild) or (tostring(msg.guild.id) ~= tostring(id)) then
-        return
-    end
-    local content = msg.content
-    local user = msg.author.id
-    local channelid = msg.channel.id
-    for k,v in pairs(events.event.message or {}) do
-        local status,command = v.comm({content,user,channelid})
-        if status then
-            exec(v,command)
-        end
-    end
-    for k,v in pairs(events.event.messageOnce or {}) do
-        local status,command = v.comm({content,user,channelid})
-        if status then
-            exec(v,command)
-            events.event.messageOnce[k] = nil
-            config.events.event.messageOnce[k] = nil
-        end
-    end
-end)
+--load events file
+local fhandler = io.open("./plugins/cron/events.lua","r")
+local data = fhandler:read("*a")
+fhandler:close()
+local eventfunc = load(data,"event loader: ./plugins/cron/events.lua",nil,setmetatable({
+    id = id,
+    client = client,
+    exec = exec,
+    events = events,
+    config = config
+},{__index = _G}))
+eventfunc()
 
 timer:start(true)
 return plugin
