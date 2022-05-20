@@ -81,7 +81,7 @@ local create_event = function(msg,cronjob,create_entry)
             type = functype
         }
     end
-    return true
+    return true,hash
 end
 
 local get_user_events = function(author_id,page)
@@ -153,7 +153,14 @@ for k,v in pairs(config.events.timer) do
     if channel then
         local message = channel:getMessage(v.id)
         if message then
-            create_event(message,v.comm,true)
+            local status,hash = create_event(message,v.comm,true)
+            --orphan events with mismatching hashes
+            if status and (hash ~= k) then 
+                log("WARNING", "Hash mismatch, orpahning event.")
+                events.timer[k] = nil
+                config.events.timer[k] = nil
+                create_event(message,v.comm)
+            end
         else
             log("ERROR","No message with id "..v.id)
         end
@@ -170,7 +177,14 @@ for _,evtype in pairs(config.events.event) do
         if channel then
             local message = channel:getMessage(v.id)
             if message then
-                create_event(message,v.comm,true)
+                local status,hash = create_event(message,v.comm,true)
+                --orphan events with mismatching hashes
+                if status and (hash ~= k) then 
+                    log("WARNING", "Hash mismatch, orpahning event.")
+                    events.event[_][k] = nil
+                    config.events.event[_][k] = nil
+                    create_event(message,v.comm)
+                end
             else
                 log("ERROR","No message with id "..v.id)
             end
