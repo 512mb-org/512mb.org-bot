@@ -38,8 +38,8 @@ function server_handler:__init(client,guild,options)
     self.autosave = options.path or true
     self.autosave_frequency = options.autosave_frequency or 10
     self.plugin_search_paths = options.plugin_search_paths or {"./plugins/"}
-    self.default_plugins = options.default_plugins or {"test"}
-    self.default_prefixes = options.default_prefixes or {"&","<@!"..self.client.user.id..">"}
+    self.default_plugins = options.default_plugins or {"plugins"}
+    self.default_prefixes = options.default_prefixes or {"&","<@"..self.client.user.id.."> "}
     self.config = {}
     self.config_path = self.config_path:gsub("%%id",self.id)
     self:load_config()

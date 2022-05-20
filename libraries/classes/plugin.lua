@@ -56,4 +56,27 @@ function plugin:remove_command(command_object)
         self.command_handler:remove_command(command_object)
     end
 end
+
+function plugin:load_helpdb(path)
+    local helpdb_file = io.open(path,r)
+    local helpdb,err = load(helpdb_file:read("*a") or "","helpdb "..path,nil,
+        setmetatable({
+            require = require,
+            import = import
+        },{
+            __index = _G
+        })
+    )
+    helpdb_file:close()
+    if not helpdb then
+        error(err)
+    end
+    helpdb = helpdb()
+    self:for_all_commands(function(command)
+        if helpdb[command.name] then
+            command:set_help(helpdb[command.name])
+        end
+    end)
+end
+
 return plugin

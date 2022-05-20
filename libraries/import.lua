@@ -28,7 +28,7 @@ return function(reqfunc)
                 import = import,
             },{__index = _G}))
             if err then
-                error("[import: "..filname.."] "..tostring(err))
+                error("[import: "..filename.."] "..tostring(err))
             end
             return f()
         end

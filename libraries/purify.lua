@@ -21,6 +21,8 @@ purify.purify_pings = function(msg,input)
         end
         text = text:gsub("<@(%D*)"..id..">",substitution)
     end
+    text = text:gsub("@everyone","")
+    text = text:gsub("@here","")
     return text
 end
 

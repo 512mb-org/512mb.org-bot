@@ -10,106 +10,94 @@ local table_utils = import("table-utils")
 local purify = import("purify")
 function command_handler:__init(parent_server)
     self.server_handler = assert(parent_server,"parent server handler not provided")
-    self.command_pool = {}
+    self.pool = {}
     self.prefixes = {}
-    self.command_meta = {
+    self.meta = {
         plugins = {},
         categories = {}
     }
 end
 function command_handler:add_prefix(prefix)
-    local purified_prefix = purify.purify_escapes(prefix)
-    self.prefixes[purified_prefix] = purified_prefix
+    self.prefixes[prefix] = purify.purify_escapes(prefix)
     return true
 end
 function command_handler:remove_prefix(prefix)
-    local purified_prefix = purify.purify_escapes(prefix)
-    if self.prefixes[purified_prefix] or table_utils.count(self.prefixes) <= 1 then
-        self.prefix[purified_prefix] = nil
+    local prefix = purify_escapes(prefix)
+    if self.prefixes[prefix] and table_utils.count(self.prefixes) > 1 then
+        self.prefixes[prefix] = nil
         return true
-    else 
-        return false, (
-                (self.prefixes[purified_prefix] and "No such prefix") or
-                "Cannot remove the last remaining prefix"
-                )
     end
+    if not self.prefixes[prefix] then
+        return false, "Prefix not found"
+    end
+    return false, "Cannot remove last remaining prefix!"
 end
 function command_handler:get_prefixes()
     return table_utils.deepcopy(self.prefixes)
 end
 function command_handler:add_command(command)
     assert(type(command) == "table","command object expected")
-    local purified_name = purify.purify_escapes(command.name)
-    self.command_pool[purified_name] = command
-    if not self.command_meta.plugins[command.parent.name] then
-        self.command_meta.plugins[command.parent.name] = {} 
+    if self.pool[command.name] then
+        return false, "Already have a command with the same name"
     end
-    if not self.command_meta.categories[command.options.category] then
-        self.command_meta.categories[command.options.category] = {}
+    self.pool[command.name] = command
+    if not self.meta.plugins[command.parent.name] then
+        self.meta.plugins[command.parent.name] = {}
     end
-    table.insert(self.command_meta.categories[command.options.category],command.name)
-    table.insert(self.command_meta.plugins[command.parent.name],command.name)
+    self.meta.plugins[command.parent.name][command.name] = command.name
+    if not self.meta.categories[command.category] then
+        self.meta.categories[command.category] = {}
+    end
+    self.meta.categories[command.category][command.name] = command.name
     return command
 end
 function command_handler:remove_command(command)
     assert(type(command) == "table","command object expected")
-    local purified_name = purify.purify_escapes(command.name)
-    if self.command_pool[purified_name] then
-        local command = self.command_pool[purified_name]
-        --not exactly optimal, but lists are lists. can't do much about them.
-        table_utils.remove_value(self.command_meta.plugins[command.parent.name],command.name)
-        if #self.command_meta.plugins[command.parent.name] == 0 then
-                self.command_meta.plugins[command.parent.name] = nil
-        end
-        table_utils.remove_value(self.command_meta.categories[command.options.category],command.name)
-        if #self.command_meta.categories[command.options.category] == 0 then
-                self.command_meta.categories[command.options.category] = nil
-        end
-        self.command_pool[purified_name] = nil
-        return true
-    else 
+    if not self.pool[command.name] then
         return false
     end
+    self.pool[command.name] = nil
+    self.meta.categories[command.category][command.name] = nil
+    self.meta.plugins[command.parent.name][command.name] = nil
 end
 function command_handler:get_command(name)
-    local purified_name = purify.purify_escapes(assert(type(name) == "string") and name)
-    if self.command_pool[purified_name] then 
-        return self.command_pool[purified_name]
-    else
-        return false
-    end
+    return self.pool[name] 
 end
 function command_handler:get_commands(name)
     local list = {}
-    for k,v in pairs(self.command_pool) do
+    for k,v in pairs(self.pool) do
         table.insert(list,k)
     end
     return list
 end
-function command_handler:get_commands_metadata()
-    return table_utils.deepcopy(self.command_meta)
+function command_handler:get_metadata()
+    local plugins,categories = {},{}
+    for k,v in pairs(self.meta.plugins) do
+        plugins[k] = table_utils.listcopy(v)
+    end
+    for k,v in pairs(self.meta.categories) do
+        categories[k] = table_utils.listcopy(v)
+    end 
+    return {
+        plugins = plugins,
+        categories = categories
+    }
 end
 function command_handler:handle(message)
-        for name,command in pairs(self.command_pool) do
-        if command.options.regex then
-            if message.content:match(command.options.regex) then
-                command:exec(message)
-                return
-            end
-        else
-            if command.options.prefix then
-                for _,prefix in pairs(self.prefixes) do
-                    if message.content:match("^"..prefix..name.."$") or message.content:match("^"..prefix..name.."%s") then
-                        command:exec(message)
-                        return
-                    end
-                end
-            else
-                if message.content:match("^"..name.."$") or message.content:match("^"..name.."%s") then
-                    command:exec(message)
-                    return
-                end
-            end
+    local content = message.content
+    local prefix = ""
+    local command
+    for k,v in pairs(self.prefixes) do
+        if content:match("^"..v) then
+            prefix = v
+        end
+    end
+    command = content:sub(prefix:len()+1,-1):match("^[%-_%w]+")
+    if self.pool[command] then
+        if (prefix == "") and self.pool[command].options.prefix == false then
+            self.pool[command]:exec(message)
+        elseif (prefix ~= "") and self.pool[command].options.prefix == true then
+            self.pool[command]:exec(message)
         end
     end
 end

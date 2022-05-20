@@ -195,20 +195,8 @@ for _,evtype in pairs(config.events.event) do
 end
 
 local event = command("event",{
-    help = {embed={
-      title = "Add a cron event",
-      description = "https://github.com/512mb-org/512mb.org-bot/wiki/Events-and-cronjobs",
-      fields = {
-        {name = "Usage:",value = "event ..."},
-        {name = "Perms:",value = "administrator"},
-      }
-    }},
-    perms = {
-        "administrator"
-    },
-    args = {
-        "string"
-    },
+    perms = {"administrator"},
+    args = {"string"},
     exec = function(msg,args,opts)
         return create_event(msg,table.concat(args," "))
     end
@@ -216,14 +204,6 @@ local event = command("event",{
 plugin:add_command(event)
 
 local delay = command("delay",{
-    help = {embed={
-      title = "Delay a command",
-      description = "Delay fromat is <number><unit>, where unit is one of the follwing:\n\"h\" - hour,\n\"m\" - minute,\n\"d\" - day,\n\"w\" - week,\n\"y\" - year",
-      fields = {
-        {name = "Usage:",value = "delay <delayformat> <command>"},
-        {name = "Perms:",value = "any"},
-      }
-    }},
     args = {
         "string",
         "string"
@@ -238,14 +218,6 @@ local delay = command("delay",{
 plugin:add_command(delay)
 
 local events_comm = command("events",{
-    help = {embed={
-      title = "View your running events",
-      description = "nuff said.",
-      fields = {
-        {name = "Usage:",value = "events <page>"},
-        {name = "Perms:",value = "any"},
-      }
-    }},
     exec = function(msg,args,opts)
         args[1] = tonumber(args[1]) or 1
         local upto = args[1]*5
@@ -269,20 +241,8 @@ local events_comm = command("events",{
 plugin:add_command(events_comm)
 
 local user_events_comm = command("user-events",{
-    help = {embed={
-      title = "View running events of a certain user",
-      description = "nuff said.",
-      fields = {
-        {name = "Usage:",value = "user-events <user> <page>"},
-        {name = "Perms:",value = "administrator"},
-      }
-    }},
-    args = {
-        "member"
-    },
-    perms = {
-        "administrator"
-    },
+    args = {"member"},
+    perms = {"administrator"},
     exec = function(msg,args,opts)
         args[2] = tonumber(args[2]) or 1
         local upto = args[2]*5
@@ -306,17 +266,7 @@ local user_events_comm = command("user-events",{
 plugin:add_command(user_events_comm)
 
 local remove_event= command("remove-event",{
-    help = {embed={
-      title = "Remove an event",
-      description = "nuff said.",
-      fields = {
-        {name = "Usage:",value = "remove-event <id>"},
-        {name = "Perms:",value = "any"},
-      }
-    }},
-    args = {
-        "string"
-    },
+    args = {"string"},
     exec = function(msg,args,opts)
         return remove_user_event(msg.author.id,args[1])
     end
@@ -324,14 +274,6 @@ local remove_event= command("remove-event",{
 plugin:add_command(remove_event)
 
 local remove_user_event_c = command("remove-user-event",{
-    help = {embed={
-      title = "Remove an event from a user",
-      description = "nuff said.",
-      fields = {
-        {name = "Usage:",value = "remove-user-event <user> <id>"},
-        {name = "Perms:",value = "administrator"},
-      }
-    }},
     args = {
         "member",
         "string"
@@ -360,10 +302,10 @@ timer:on("min",function()
 end)
 
 --load events file
-local fhandler = io.open("./plugins/cron/events.lua","r")
+local fhandler = io.open(plugin_path.."/events.lua","r")
 local data = fhandler:read("*a")
 fhandler:close()
-local eventfunc = load(data,"event loader: ./plugins/cron/events.lua",nil,setmetatable({
+local eventfunc = load(data,"event loader: "..plugin_path.."/events.lua",nil,setmetatable({
     id = id,
     client = client,
     exec = exec,
@@ -371,6 +313,7 @@ local eventfunc = load(data,"event loader: ./plugins/cron/events.lua",nil,setmet
     config = config
 },{__index = _G}))
 eventfunc()
-
 timer:start(true)
+
+plugin:load_helpdb(plugin_path.."help.lua")
 return plugin

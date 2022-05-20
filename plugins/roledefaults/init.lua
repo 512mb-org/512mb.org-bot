@@ -9,19 +9,17 @@ client:on("memberJoin",function(member)
 end)
 
 local droleadd = command("droleadd",{
-		help = "Add a default role to assign for new users",
-        usage = "droleadd <role>",
-        perms = {"administrator"},
-        args = {
-            "role"
-        },
-		exec = function(msg,args,opts)
-	        table.insert(config.default_roles,args[1].id)
-            msg:reply("Added role "..args[1].name.." to default roles list")
-        end,
+    usage = "droleadd <role>",
+    perms = {"administrator"},
+    args = {
+        "role"
+    },
+	exec = function(msg,args,opts)
+        table.insert(config.default_roles,args[1].id)
+        msg:reply("Added role "..args[1].name.." to default roles list")
+    end,
 })
 local droledel = command("droledel",{
-        help = "Remove a role from the list of default roles",
         usage = "droledel <role>",
         perms = {"administrator"},
         args = {
@@ -37,7 +35,6 @@ local droledel = command("droledel",{
         end
 })
 local drolelist = command("drolelist", {
-        help = "List all default roles",
         usage = "drolelist",
         perms = {"administrator"},
         exec = function(msg,args,opts)
@@ -56,5 +53,6 @@ local drolelist = command("drolelist", {
 plugin:add_command(droleadd)
 plugin:add_command(droledel)
 plugin:add_command(drolelist)
+plugin:load_helpdb(plugin_path.."help.lua")
 return plugin
 

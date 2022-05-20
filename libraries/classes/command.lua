@@ -11,10 +11,10 @@ function command:__init(name,callback)
     self.rules = acl()
     self.name = name
     self.timer = discordia.Date():toMilliseconds()
+    self.category = "None"
     self.options = {
         allow_bots = false, --allow bots to execute the command
         typing_decorator = false, --set if the bot should be "typing" while the command executes
-        category = "None", --set category for the command
         prefix = true, --if true check for prefix at the start. if not, don't check for prefix
         no_parsing = false, --check if you want to disable the message argument parsing process
         timeout = 1000, --set the timeout for a command

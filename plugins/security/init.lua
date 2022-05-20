@@ -17,15 +17,6 @@ CREATE TABLE infractions(id INTEGER PRIMARY KEY AUTOINCREMENT, user TEXT, desc T
 end
 
 local grantrole = command("grant-role",{
-    help = {embed={
-      title = "Grant a role to the user",
-      description = "If <user> is not provided, the caller is assumed as the <user> argument.",
-      fields = {
-        {name = "Usage:",value = "grant-role <role id> [<user>]"},
-        {name = "Perms:",value = "administrator"},
-        {name = "Options:",value = "-q - quiet (don't print the result)"}
-      }
-    }},
     perms = {
         "administrator"
     },
@@ -41,15 +32,6 @@ local grantrole = command("grant-role",{
 plugin:add_command(grantrole)
 
 local revokerole = command("revoke-role",{
-    help = {embed={
-      title = "Revoke a role from the user",
-      description = "If <user> is not provided, the caller is assumed as the <user> argument.",
-      fields = {
-        {name = "Usage:",value = "revoke-role <role id> [<user>]"},
-        {name = "Perms:",value = "administrator"},
-        {name = "Options:",value = "-q - quiet (don't print the result)"}
-      }
-    }},
     perms = {
         "administrator"
     },
@@ -65,14 +47,6 @@ local revokerole = command("revoke-role",{
 plugin:add_command(revokerole)
 
 local warn = command("warn",{
-    help = {embed={
-      title = "Warn a user",
-      description = "nuff said.",
-      fields = {
-        {name = "Usage:",value = "warn <user> <reason>"},
-        {name = "Perms:",value = "kickMembers"},
-      }
-    }},
     perms = {
         "kickMembers"
     },
@@ -99,15 +73,6 @@ local warn = command("warn",{
 plugin:add_command(warn)
 
 local infractions = command("infractions", {
-    help = { embed = {
-        title = "List user infractions",
-        description = "Infractions include kicks, bans, mutes and warnings.",
-        fields = {
-            {name = "Usage: ", value = "infractions <user> [<startfrom>]"},
-            {name = "Perms: ", value = "kickMembers"},
-            {name = "Options: ", value = "--type=(warn default,ban,kick)"}
-        }
-    }},
     perms = {
         "kickMembers"
     },
@@ -150,15 +115,6 @@ local infractions = command("infractions", {
 plugin:add_command(infractions)
 
 local purge = command("purge",{
-    help = { embed = {
-        title = "Purge a number of messages",
-        description = "nuff said.",
-        fields = {
-            {name = "Usage: ", value = "purge <number>"},
-            {name = "Perms: ", value = "manageMessages"},
-            {name = "Options: ", value = "`--regex (regex)` - match content against regex; \n`--user (user)` - match user against id/name; \n`-w` - match webhook messages"}
-        }
-    }},
     perms = {
         "manageMessages"
     },
@@ -210,5 +166,5 @@ local purge = command("purge",{
     end
 })
 plugin:add_command(purge)
-
+plugin:load_helpdb(plugin_path.."help.lua")
 return plugin
