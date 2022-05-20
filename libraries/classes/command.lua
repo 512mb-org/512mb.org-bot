@@ -7,178 +7,162 @@ local command = class("Command")
 local acl = import("classes.command-acl")
 local discordia = import("discordia")
 function command:__init(name,callback)
-  self.rules = acl()
-  self.name = name
-  self.timer = discordia.Date():toMilliseconds()
-  self.options = {
-    allow_bots = false, --allow bots to execute the command
-    typing_decorator = false, --set if the bot should be "typing" while the command executes
-    category = "None", --set category for the command
-    prefix = true, --if true and if regex isn't enabled, check for prefix at the start. if not, don't check for prefix
-    regex = false, --check if the message matches this regular expression (should be a string)
-    no_parsing = false, --check if you want to disable the message argument parsing process
-    timeout = 1000, --set the timeout for a command
-  }
-  if type(callback) == "table" then
-    for k,v in pairs(callback.options or {}) do 
-        self.options[k] = v
+    assert(name:match("^[-_%w]+$"),"Name can only contain alphanumeric characters, underscores or dashes")
+    self.rules = acl()
+    self.name = name
+    self.timer = discordia.Date():toMilliseconds()
+    self.options = {
+        allow_bots = false, --allow bots to execute the command
+        typing_decorator = false, --set if the bot should be "typing" while the command executes
+        category = "None", --set category for the command
+        prefix = true, --if true check for prefix at the start. if not, don't check for prefix
+        no_parsing = false, --check if you want to disable the message argument parsing process
+        timeout = 1000, --set the timeout for a command
+    }
+    if type(callback) == "table" then
+        for k,v in pairs(callback.options or {}) do 
+                self.options[k] = v
+        end
+        self.callback = callback.exec
+        self.args = callback.args or self.args
+        if callback.users then
+            for k,v in pairs(callback.users) do
+                self.rules:set_user_rule(k,v)
+            end
+        end
+        if callback.roles then
+            for k,v in pairs(callback.roles) do
+                self.rules:set_group_rule(k,v)
+            end
+        end
+        callback.perms = callback.perms and self.rules:set_perm_rules(callback.perms)
+        callback.help = callback.help and self:set_help(callback.help,callback.usage)
+    elseif type(callback) == "function" then
+        self.callback = callback
     end
-    self.callback = callback.exec
-    self.args = callback.args or self.args
-    if callback.users then
-      for k,v in pairs(callback.users) do
-        self.rules:set_user_rule(k,v)
-      end
-    end
-    if callback.roles then
-      for k,v in pairs(callback.roles) do
-        self.rules:set_group_rule(k,v)
-      end
-    end
-    if callback.perms then
-      self.rules:set_perm_rules(callback.perms)
-    end
-    if callback.help then
-      self:set_help(callback.help,callback.usage)
-    end
-  elseif type(callback) == "function" then
-    self.callback = callback
-  end
 end
 --set the callback to be called on comm:exec(msg)
 function command:set_callback(fn)
-  assert(type(fn) == "function","function expected, got "..type(fn))
-  self.callback = fn
-  return self
+    assert(type(fn) == "function","function expected, got "..type(fn))
+    self.callback = fn
+    return self
 end
 --generate help using only description and usage, or nothing at all
 function command:generate_help(description,usage)
-  assert(not description or (type(description) == "string"),"Description should be either string or nil, got "..type(description))
-  assert(not usage or (type(usage) == "string"),"Usage should be either string or nil, got "..type(usage))
-  local backup_usage_str
-  if self.args then
-    backup_usage_str = self.name.." <"..table.concat(self.args,"> <")..">"
-  else
-    backup_usage_str = "not defined"
-  end
-  local permissions = table.concat(self.rules:export_snapshot()["perms"] or {},"\n")
-  if permissions == "" then
-    permissions = "All"
-  end
-  self.help = {embed = {
-    title = "Help for ``"..self.name.."``",
-    description = description,
-    fields = {
-      {name = "Usage: ",value = usage or backup_usage_str},
-      {name = "Perms: ",value = permissions}
-    }
-  }}
-  return self
+    assert(not description or (type(description) == "string"),"Description should be either string or nil, got "..type(description))
+    assert(not usage or (type(usage) == "string"),"Usage should be either string or nil, got "..type(usage))
+    local backup_usage_str
+    if self.args then
+        backup_usage_str = self.name.." <"..table.concat(self.args,"> <")..">"
+    else
+        backup_usage_str = "not defined"
+    end
+    local permissions = table.concat(self.rules:export_snapshot()["perms"] or {"All"},"\n")
+    self.help = {embed = {
+        title = "Help for ``"..self.name.."``",
+        description = description,
+        fields = {
+            {name = "Usage: ",value = usage or backup_usage_str},
+            {name = "Perms: ",value = permissions}
+        }
+    }}
+    return self
 end
 --set the help message to be sent
 function command:set_help(obj,usage)
-  if type(obj) == "string" then
-    self:generate_help(obj,usage)
-  elseif type(obj) == "table" then
-    self.help = obj
-  else
-    error("Type "..type(obj).." cannot be set as a help message")
-  end
-  return self
+    if type(obj) == "table" then
+        self.help = obj
+    else
+        self:generate_help(obj,
+                (type(usage) == "string" and usage)
+        or "No description provided.")
+    end
+    return self
 end
 --print the help message, or generate it if there is none
 function command:get_help()
-  if not self.help then
-    self:generate_help("Description not defined")
-  end
-  return self.help
+    if not self.help then
+        self:generate_help("Description not defined")
+    end
+    return self.help
 end
 function command:set_timeout_callback(fn)
-  assert(type(fn) == "function","function expected, got "..type(fn))
-  self.timeout_callback = fn
-  return self
+    assert(type(fn) == "function","function expected, got "..type(fn))
+    self.timeout_callback = fn
+    return self
 end
 
 --check the permissions for command
 function command:check_permissions(message)
-  if message.author.bot and (not self.options.allow_bots) then
-    return false
-  end
-  if discordia.Date():toMilliseconds()-self.options.timeout < self.timer then
-    if self.timeout_callback then
-      self.timeout_callback(fn)
-      return false
+    if message.author.bot and (not self.options.allow_bots) then
+        return false
     end
-  end
-  self.timer = discordia.Date():toMilliseconds()
-  if self.rules:check_user(message.author.id) then
-    local found,allow = self.rules:check_user(message.author.id)
-    return allow
-  end
-  if self.rules:check_group(message.member.roles) then
-    local found,allow = self.rules:check_group(message.member.roles)
-    return allow
-  end
-  return self.rules:check_perm(message.member:getPermissions(message.channel))
+    if discordia.Date():toMilliseconds()-self.options.timeout < self.timer then
+        if self.timeout_callback then
+            self.timeout_callback(message)
+            return false
+        end
+    end
+    self.timer = discordia.Date():toMilliseconds()
+    if self.rules:check_user(tostring(message.author.id)) then
+        local found,allow = self.rules:check_user(tostring(message.author.id))
+        return allow
+    end
+    if self.rules:check_group(message.member.roles) then
+        local found,allow = self.rules:check_group(message.member.roles)
+        return allow
+    end
+    return self.rules:check_perm(message.member:getPermissions(message.channel))
 end
 --the main entry point for the command - execute the callback within after
 --multiple checks
 function command:exec(message,args,opts)
-  local exec = self.callback
-  if not self.callback then
-    error("Callback not set for command "..self.name)
-  end 
-  if self.decorator then
-    self.callback = self.decorator(self.callback)
-  end
-  local content
-  if self.options.regex then
-    content = message.content
-  else
+    local exec = self.callback
+    if not self.callback then
+        error("Callback not set for command "..self.name)
+    end 
+    if self.decorator then
+        self.callback = self.decorator(self.callback)
+    end
     local strstart,strend = message.content:find(self.name,1,true)
     content = message.content:sub(strend+1,-1)
-  end
-  if self:check_permissions(message) then
-    if self.options.typing_decorator then
-        message.channel:broadcastTyping()
-    end
-    local status,args,opts,err = import("air").parse(content,self.args,message.client,message.guild.id)
-    if status then
-      local callst,status,response = pcall(self.callback,message,args,opts)
-      if callst then
-        if type(status) == "boolean" then
-          if status then
-            message:addReaction("✅")
-          else
-            message:addReaction("❌")
-          end
+    if self:check_permissions(message) then
+        if self.options.typing_decorator then
+            message.channel:broadcastTyping()
         end
-      else
-        message:addReaction("⚠️")
-        message:reply("An internal error occured: "..status)
-      end
-    else
-      message:addReaction("❌")
-      message:reply(err)
+        local status,args,opts,err = import("air").parse(content,self.args,message.client,message.guild.id)
+        if status then
+            local callst,status,response = pcall(self.callback,message,args,opts)
+            if callst then
+                if type(status) == "boolean" then
+                    message:addReaction((status and "✅") or "❌")
+                end
+                return
+            end
+            message:addReaction("⚠️")
+            message:reply("An internal error occured: "..status)
+            return
+        end
+        message:addReaction("❌")
+        message:reply(err)
+        return
     end
-  else
     message:addReaction("❌")
-  end
 end
 --add decorators for the callback
 function command:set_decorator(fn)
-  assert(type(fn) == "function","a decorator function expected, got "..type(fn))
-  self.decorator = fn
-  return self
+    assert(type(fn) == "function","a decorator function expected, got "..type(fn))
+    self.decorator = fn
+    return self
 end
 --get a list of all properties of the command
 function command:get_properties()
-  return {
-    name = self.name,
-    category = self.options.category,
-    args = table_utils.deepcopy(self.args),
-    help = table_utils.deepcopy(self.help),
-    prefix = self.prefix
-  }
+    return {
+        name = self.name,
+        category = self.options.category,
+        args = table_utils.deepcopy(self.args),
+        help = table_utils.deepcopy(self.help),
+        prefix = self.prefix
+    }
 end
 return command
