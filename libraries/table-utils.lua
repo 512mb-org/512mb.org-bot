@@ -15,42 +15,42 @@ utilities.deepcopy = function(orig)
     return copy
 end
 utilities.slice = function(list,start,list_end)
-  local output = {}
-  for I = (start or 1),(list_end or #table) do
+    local output = {}
+    for I = (start or 1),(list_end or #table) do
     table.insert(output,list[I])
-  end
-  return output
+    end
+    return output
 end
 utilities.shallowcopy = function(orig)
-  local copy = {}
-  for k,v in pairs(orig) do
+    local copy = {}
+    for k,v in pairs(orig) do
     copy[k] = v
-  end
-  return copy
+    end
+    return copy
 end
 --overwrite the original table's properties with new properties
 utilities.overwrite = function(original,overwrite)
-  local new = utilities.shallowcopy(original)
-  for k,v in pairs(overwrite) do
+    local new = utilities.shallowcopy(original)
+    for k,v in pairs(overwrite) do
     new[k] = v
-  end
-  return new
+    end
+    return new
 end
 --merge all objects passed as arguments into a table.
 --if the object is a table, merge all of it's contents with the table
 utilities.merge = function(...)
-  local args = {...}
-  local new = {}
-  for k,v in pairs(args) do
+    local args = {...}
+    local new = {}
+    for k,v in pairs(args) do
     if type(v) == "table" then
-      for k2,v2 in pairs(v) do
+        for k2,v2 in pairs(v) do
         table.insert(new,v2)
-      end
+        end
     else
-       table.insert(new,v)
+         table.insert(new,v)
      end
-   end
-   return new
+     end
+     return new
 end
 utilities.remove_value = function(tb,v)
     local id_to_remove = nil
