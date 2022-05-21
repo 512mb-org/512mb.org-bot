@@ -16,7 +16,7 @@ local servers = {}
 --create server
 local server = import("classes.server-handler")
 client:on("ready",function()
-  print("starting test")
+  print("Starting bot")
   for _,id in pairs(server_ids) do
     if not servers[id] then
         servers[id] = server(client,client:getGuild(id),{

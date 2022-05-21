@@ -1,9 +1,9 @@
 return {
   ["prefix"] = {embed={
-      title = "Set or view current prefix for this bot",
-      description = "If you're not sure what's the current prefix, just ping the bot",
+      title = "Add/delete/list prefixes",
+      description = "Multiple prefixes are possible",
       fields = {
-        {name = "Usage:",value = "prefix [<new prefix> or \"<new prefix>\"]"},
+        {name = "Usage:",value = "prefix [(add | remove | list (default)) [<new prefix>]]"},
         {name = "Perms:",value = "Administrator"},
       }
   }},
@@ -16,9 +16,10 @@ return {
 ``alias !hi "!speak Hello!"`` - reply to !hi with "Hello!" using speak command
 ``alias !say "!speak ..."`` - reply to !hi with everything typed after !hi
 ``alias !say "!speak $1"`` - reply to !hi with the first argument sent along with !hi
-More at https://github.com/yessiest/SuppaBot/wiki/Tasks]]
+More at https://github.com/512mb-xyz/512mb.org-bot/wiki/Aliases]]
         },
-        {name = "Perms: ",value = "Administrator (doesn't apply to created aliases)"}
+        {name = "Perms: ",value = "Administrator (doesn't apply to created aliases)"},
+        {name = "Opts: ",value = "`-p` - bind the command to not use a prefix\n`--description=\"your description here\"` - add a description to alias"}
       }
   }},
   ["unalias"] = {embed = {

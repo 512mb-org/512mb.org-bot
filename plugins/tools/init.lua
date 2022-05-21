@@ -28,6 +28,7 @@ function to_bit_string(num)
 end
 
 local flip = command("flip",{
+    category = "Miscellaneous",
 	help = "Flips a coin, obv.",
     usage = "flip",
 	exec = function(msg,args,opts)
@@ -41,6 +42,7 @@ local flip = command("flip",{
 })
 plugin:add_command(flip)
 local dice = command("dice",{
+    category = "Miscellaneous",
     usage = "dice <2d6,d30,d20+4,etc>",
 	exec = function(msg,args,opts)
 		local out = {embed = {
@@ -76,6 +78,7 @@ local dice = command("dice",{
 })
 plugin:add_command(dice)
 local cards = command("cards",{
+    category = "Miscellaneous",
     usage = "cards <amount>",
 	args = {"number"},
 	exec = function(msg,args,opts)
@@ -96,15 +99,17 @@ local cards = command("cards",{
 })
 plugin:add_command(cards)
 local calculate = command("calculate",{
+    category = "Miscellaneous",
 	args = {
 		"string"
 	},
 	exec = function(msg,args,opts)
-        msg:reply(qalculator.qalc(args[1],opts["e"]))
+        msg:reply(qalculator.qalc(table.concat(args," "),opts["e"]))
 	end,
 })
 plugin:add_command(calculate)
 local pfp = command("pfp",{
+    category = "Miscellaneous",
 	exec = function(msg,args,opts)
 		local user = client:getUser((args[1] or ""):match("%d+"))
 		if user then
@@ -116,6 +121,7 @@ local pfp = command("pfp",{
 })
 plugin:add_command(pfp)
 local markov = command("markov",{
+    category = "Miscellaneous",
 	exec = function(msg,args,opts)
 		local preset,code,err = import("file").readJSON("./resources/"..(opts["preset"] or "default"):match("%w+")..".json",{system_failed = true})
 		if preset.system_failed then
@@ -129,6 +135,7 @@ local markov = command("markov",{
 })
 plugin:add_command(markov)
 local embed = command("embed",{
+    category = "Miscellaneous",
 	args = {
 		"string"
 	},

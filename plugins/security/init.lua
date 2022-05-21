@@ -17,6 +17,7 @@ CREATE TABLE infractions(id INTEGER PRIMARY KEY AUTOINCREMENT, user TEXT, desc T
 end
 
 local grantrole = command("grant-role",{
+    category = "Security",
     perms = {
         "administrator"
     },
@@ -32,6 +33,7 @@ local grantrole = command("grant-role",{
 plugin:add_command(grantrole)
 
 local revokerole = command("revoke-role",{
+    category = "Security",
     perms = {
         "administrator"
     },
@@ -47,6 +49,7 @@ local revokerole = command("revoke-role",{
 plugin:add_command(revokerole)
 
 local warn = command("warn",{
+    category = "Security",
     perms = {
         "kickMembers"
     },
@@ -73,6 +76,7 @@ local warn = command("warn",{
 plugin:add_command(warn)
 
 local infractions = command("infractions", {
+    category = "Security",
     perms = {
         "kickMembers"
     },
@@ -115,6 +119,7 @@ local infractions = command("infractions", {
 plugin:add_command(infractions)
 
 local purge = command("purge",{
+    category = "Security",
     perms = {
         "manageMessages"
     },

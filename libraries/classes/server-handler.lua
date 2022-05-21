@@ -6,6 +6,7 @@ local command_handler = import("classes.command-handler")
 local file = import("file")
 local eventlist = import("eventlist")
 local discordia = import("discordia")
+local log = import("logging")
 
 local function check_partitioning(id,...)
     args = {...}
@@ -39,7 +40,7 @@ function server_handler:__init(client,guild,options)
     self.autosave_frequency = options.autosave_frequency or 10
     self.plugin_search_paths = options.plugin_search_paths or {"./plugins/"}
     self.default_plugins = options.default_plugins or {"plugins"}
-    self.default_prefixes = options.default_prefixes or {"&","<@"..self.client.user.id.."> "}
+    self.default_prefixes = options.default_prefixes or {"&","<@"..self.client.user.id.."> ","."}
     self.config = {}
     self.config_path = self.config_path:gsub("%%id",self.id)
     self:load_config()
@@ -74,7 +75,7 @@ function server_handler:__init(client,guild,options)
     end
     self.plugin_handler:update_plugin_info()
     for _,plugin_name in pairs(self.default_plugins) do
-        print("[SERVER] Loading plugin: "..tostring(plugin_name).." - ", self.plugin_handler:load(plugin_name))
+        log("SERVER", "Loading plugin: "..tostring(plugin_name).." - ", self.plugin_handler:load(plugin_name))
     end
     for _,prefix in pairs(self.default_prefixes) do
         self.command_handler:add_prefix(prefix)
@@ -82,7 +83,7 @@ function server_handler:__init(client,guild,options)
 end
 
 function server_handler:load_config(path)
-    print("[SERVER] Loading config")
+    log("SERVER", "Loading config")
     if path then
         self.config = file.readJSON(path,{})
     else
@@ -92,7 +93,7 @@ function server_handler:load_config(path)
 end
 
 function server_handler:save_config(path)
-    print("[SERVER] Saving config")
+    log("SERVER", "Saving config")
     if path then
         file.writeJSON(path,self.config)
     else

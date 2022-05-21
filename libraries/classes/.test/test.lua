@@ -1,5 +1,4 @@
 class = require("baseclass")
-color = require("tty-colors")
 tests = {}
 tests[1] = function()
   print("Basic class initialization test")
@@ -79,8 +78,7 @@ print("Deteceted "..#tests.." tests. Starting now.")
 OK = 0
 for k,v in pairs(tests) do
   status,errcode = pcall(v)
-  stat_color = (status and "green") or "red"
-  print(color("TEST #"..k.." "..((status and "OK") or "ERROR")..(((not status) and errcode) or ""),stat_color))
+  print("TEST #"..k.." "..((status and "OK") or "ERROR")..(((not status) and errcode) or ""))
   if status then
     OK = OK + 1
   end

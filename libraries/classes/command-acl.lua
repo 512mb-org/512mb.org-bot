@@ -6,24 +6,8 @@ local discordia = import("discordia")
 local enum_perms = discordia.enums.permission
 --The following method extends the ACL class to work with rule-specific features,
 --such as the role position
-function command_acl:check_group(roles)
-    local found = false
-    local highest_role = nil
-    local highest_role_status = nil
-    for k,v in pairs(roles) do
-        if self.group_rules[tostring(v.id)] then
-            found = true
-            if not highest_role then
-                highest_role = v
-                highest_role_status = self.group_rules[tostring(v.id)]
-            end
-            if v.position > highest_role.position then
-                highest_role = v
-                highest_role_status = self.group_rules[tostring(v.id)]
-            end
-        end
-    end
-    local allow = highest_role_status
+function command_acl:check_group(highest_role)
+    local allow = self.group_rules[tostring(highest_role.id)]
     return found,(allow and allow == 1)
 end
 --The following methods extend the ACL class to add the "perm" permissions

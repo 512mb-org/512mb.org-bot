@@ -13,21 +13,24 @@ local exec = function(v,command)
     local channel = client:getChannel(v.channel)
     if not channel then
         log("ERROR","Unable to retrieve event channel: "..tostring(v.channel))
+        log("ERROR","Failed event: "..command)
         return
     end
     local msg = channel:getMessage(v.id)
     if not msg then
         log("ERROR","Unable to retrieve event message: "..tostring(v.id))
+        log("ERROR","Failed event: "..command)
         return
     end
     if not msg.member then
         log("ERROR","Unable to retrieve event creator: "..tostring(v.user.id))
+        log("ERROR","Failed event: "..command)
         return
     end
     command_handler:handle(fake_message(msg,{
         delete = function() end,
         content = command
-    }))
+    }),1)
 end
 
 if not config.events then
@@ -55,7 +58,7 @@ local create_event = function(msg,cronjob,create_entry)
             user = tostring(msg.author.id),
             type = functype
         }
-        if create_entry then return true end
+        if create_entry then return true,hash end
         if not config.events.event[event_name] then config.events.event[event_name] = {} end
         config.events.event[event_name][hash] = {
             comm = arg,
@@ -72,7 +75,7 @@ local create_event = function(msg,cronjob,create_entry)
             user = tostring(msg.author.id),
             type = functype
         }
-        if create_entry then return true end
+        if create_entry then return true,hash end
         config.events.timer[hash] = {
             comm = arg,
             channel = tostring(msg.channel.id),
@@ -156,16 +159,20 @@ for k,v in pairs(config.events.timer) do
             local status,hash = create_event(message,v.comm,true)
             --orphan events with mismatching hashes
             if status and (hash ~= k) then 
-                log("WARNING", "Hash mismatch, orpahning event.")
+                log("WARNING", "Hash mismatch, orphaning event.")
                 events.timer[k] = nil
                 config.events.timer[k] = nil
                 create_event(message,v.comm)
             end
         else
             log("ERROR","No message with id "..v.id)
+            log("ERROR","Event id: "..k..".\nEvent description: ")
+            print(v.comm)
         end
     else
         log("ERROR","No channel with id "..v.channel)
+        log("ERROR","Event id: "..k..".\nEvent description: ")
+        print(v.comm)
     end
 end
 
@@ -180,21 +187,26 @@ for _,evtype in pairs(config.events.event) do
                 local status,hash = create_event(message,v.comm,true)
                 --orphan events with mismatching hashes
                 if status and (hash ~= k) then 
-                    log("WARNING", "Hash mismatch, orpahning event.")
+                    log("WARNING", "Hash mismatch, orphaning event.")
                     events.event[_][k] = nil
                     config.events.event[_][k] = nil
                     create_event(message,v.comm)
                 end
             else
                 log("ERROR","No message with id "..v.id)
+                log("ERROR","Event "..k..".\nEvent description: ")
+                config.events.event[_][k] = nil
             end
         else
             log("ERROR","No channel with id "..v.channel)
+            log("ERROR","Event "..k..".\nEvent description: ")
+            config.events.event[_][k] = nil
         end
     end
 end
 
 local event = command("event",{
+    category = "Automation",
     perms = {"administrator"},
     args = {"string"},
     exec = function(msg,args,opts)
@@ -204,6 +216,7 @@ local event = command("event",{
 plugin:add_command(event)
 
 local delay = command("delay",{
+    category = "Automation",
     args = {
         "string",
         "string"
@@ -218,6 +231,7 @@ local delay = command("delay",{
 plugin:add_command(delay)
 
 local events_comm = command("events",{
+    category = "Automation",
     exec = function(msg,args,opts)
         args[1] = tonumber(args[1]) or 1
         local upto = args[1]*5
@@ -226,7 +240,7 @@ local events_comm = command("events",{
             title = "Your events: ",
             description = "",
             footer = {
-                text = "Events "..tostring(upto-4).." - "..tostring(upto)
+                text = "Events "..tostring(upto-4).." - "..tostring(upto).." | Total: "..tostring(#uevents)
             }
         }}
         for I = upto-4,upto do
@@ -241,6 +255,7 @@ local events_comm = command("events",{
 plugin:add_command(events_comm)
 
 local user_events_comm = command("user-events",{
+    category = "Automation",
     args = {"member"},
     perms = {"administrator"},
     exec = function(msg,args,opts)
@@ -266,6 +281,7 @@ local user_events_comm = command("user-events",{
 plugin:add_command(user_events_comm)
 
 local remove_event= command("remove-event",{
+    category = "Automation",
     args = {"string"},
     exec = function(msg,args,opts)
         return remove_user_event(msg.author.id,args[1])
@@ -281,11 +297,20 @@ local remove_user_event_c = command("remove-user-event",{
     perms = {
         "administrator"
     },
+    category = "Automation",
     exec = function(msg,args,opts)
         return remove_user_event(args[1].id,args[2])
     end
 })
 plugin:add_command(remove_user_event_c)
+
+local date_c = command("date",{
+    category = "Utilities",
+    exec = function(msg,args,opts)
+        msg:reply(os.date("%d.%m.%Y %H:%M"))
+    end
+})
+plugin:add_command(date_c)
 
 local timer = discordia.Clock()
 timer:on("min",function()

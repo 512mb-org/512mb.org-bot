@@ -10,6 +10,7 @@ local settings = {
     limit = 500000
 }
 c_brainfuck = command("brainfuck",{
+        category = "Miscellaneous",
         args = {
             "string"
         },
@@ -47,6 +48,7 @@ c_brainfuck = command("brainfuck",{
 })
 plugin:add_command(c_brainfuck)
 c_befunge = command("befunge",{
+        category = "Miscellaneous",
         args = {
             "string"
         },

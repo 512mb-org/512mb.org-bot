@@ -9,6 +9,7 @@ client:on("memberJoin",function(member)
 end)
 
 local droleadd = command("droleadd",{
+    category = "Automation",
     usage = "droleadd <role>",
     perms = {"administrator"},
     args = {
@@ -20,6 +21,7 @@ local droleadd = command("droleadd",{
     end,
 })
 local droledel = command("droledel",{
+        category = "Automation",
         usage = "droledel <role>",
         perms = {"administrator"},
         args = {
@@ -35,6 +37,7 @@ local droledel = command("droledel",{
         end
 })
 local drolelist = command("drolelist", {
+        category = "Automation",
         usage = "drolelist",
         perms = {"administrator"},
         exec = function(msg,args,opts)

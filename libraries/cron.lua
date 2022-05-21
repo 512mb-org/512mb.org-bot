@@ -8,6 +8,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ]]
+local find_strings = require("string_parse")
 
 local safe_regex = function(str,pattern)
     local status,ret = pcall(string.match,str,pattern)
@@ -18,6 +19,7 @@ end
 if _VERSION=="Lua 5.1" then
     table.unpack = unpack
 end
+
 local cron = {
     directive_handler = nil
 }
@@ -200,50 +202,6 @@ local syntax = {
     end}
 }
 
-local find_strings = function(text)
-    -- Find 2 string delimiters.
-    -- Partition text into before and after if the string is empty
-    -- Partition text into before, string and after if the string isn't empty
-    local strings = {text}
-    while strings[#strings]:match("[\"'/]") do
-        local string = strings[#strings]
-        -- Opening character for a string
-        local open_pos = string:find("[\"'/]")
-        local open_char = string:sub(open_pos,open_pos)
-        if strings[#strings]:sub(open_pos+1,open_pos+1) == open_char then
-            -- Empty string
-            local text_before = string:sub(1,open_pos-1)
-            local text_after = string:sub(open_pos+2,-1)
-            strings[#strings] = text_before
-            table.insert(strings,open_char..open_char)
-            table.insert(strings,text_after)
-        else
-            -- Non-empty string
-            local text_before = string:sub(1,open_pos-1)
-            local _,closing_position = string:sub(open_pos,-1):find("[^\\]"..open_char)
-            if not closing_position then
-                break
-            else
-                closing_position = closing_position+open_pos-1
-            end
-            local text_string = string:sub(open_pos,closing_position)
-            local text_after = string:sub(closing_position+1,-1)
-            strings[#strings] = text_before
-            table.insert(strings,text_string)
-            table.insert(strings,text_after)
-        end
-    end
-    for k,v in pairs(strings) do
-        if v:len() == 0 then
-            table.remove(strings,k)
-        end
-    end
-    return strings
-    -- P.S: This one is the best one i've written. Sure it looks clunky, but it 
-    -- does exactly what I expect it to do - handle cases when there are string
-    -- delimiters inside other strings. Lovely. Also kinda horrifying.
-end
-
 local startfrom = function(pos,t) 
     local newtable = {}
     for i = pos,#t do
@@ -263,7 +221,6 @@ cron._split = function(text)
     end)
     return tokens
 end
-
 
 cron._split_with_strings = function(text)
     -- Parse strings
@@ -316,6 +273,9 @@ cron.parse_directive = function(tokens)
                 end
                 break
             end
+        end
+        if stop then
+            break
         end
     end
     -- We use a delimiter so that command start wouldn't be ambiguous

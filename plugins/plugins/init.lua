@@ -11,6 +11,7 @@ local generic_admin_template = {
 }
 
 local enable = command("enable",utilities.overwrite(generic_admin_template,{
+    category = "Utilities",
     exec = function(msg,args,opts)
         local status,message = plugin_handler:load(args[1])
         local plugin_data = command_handler:get_metadata().plugins
@@ -30,6 +31,7 @@ local enable = command("enable",utilities.overwrite(generic_admin_template,{
 }))
 plugin:add_command(enable)
 local disable = command("disable",utilities.overwrite(generic_admin_template,{
+    category = "Utilities",
     exec = function(msg,args,opts)
         local plugin_data = command_handler:get_metadata().plugins
         if not (args[1] == "plugins") then
@@ -53,6 +55,7 @@ local disable = command("disable",utilities.overwrite(generic_admin_template,{
 }))
 plugin:add_command(disable)
 local plugins = command("plugins",utilities.overwrite(generic_admin_template,{
+        category = "Utilities",
         args = {},
         exec = function(msg,args,opts)
             local all_plugins = plugin_handler:list_loadable()

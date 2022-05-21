@@ -1,34 +1,8 @@
 --rewrite this lib (P.S: done)
 --P.S: air stands for Advanced Input Recognition, although technically it's not all that advanced
+local parse_string = require("string_parse")
 air = {}
-air.match_strings = function(string)
-    local strings = {}
-    string = string:gsub("\"(.-[^\\])\"",function(capt)
-        string_id = string_id + 1
-        strings["%str"..string_id] = capt:gsub("\\\"","\"")
-        return " %str"..string_id
-    end)
-    return string,strings
-end
-
-local function parse_strings(thing,strings)
-    --find all strings and replace them with string ids with no spaces
-    local strings = strings or {}
-    local string_count = 0
-    local function get_string(text)
-        string_count = string_count + 1
-        local id = "&;"..tostring(string_count)..";&"
-        strings[string_count] = text
-        return id
-    end
-    thing = thing:gsub("(\")\"",get_string)
-    thing = thing:gsub("(\".-[^\\])\"",get_string)
-    thing = thing:gsub("(\')\'",get_string)
-    thing = thing:gsub("(\'.-[^\\])\'",get_string)
-    return thing,strings
-end
---this table will look up special types
-special_case = {
+object_types = {
     ["voiceChannel"] = function(id,client,guild_id)
         local guild = client:getGuild(guild_id)
         local channel = guild:getChannel(id:match("(%d+)[^%d]*$"))
@@ -116,88 +90,63 @@ special_case = {
             return true,id
         end
         return false
+    end,
+    ["string"] = function(str)
+        if str:match("^[\"'].*[\"']$") then
+            return true, str:match("^[\"'](.*)[\"']$") 
+        end
+        return true,str
+    end,
+    ["number"] = function(n)
+        local number = tonumber(n)
+        return (number ~= nil), number
     end
 }
 
 air.parse = function(string,argmatch,client,guild_id)
-    local args,opts = {},{}
-    local string_id = 0
-    local strings = {}
-    string = string:gsub("[%s\n]+\"\"",function(capt)
-        string_id = string_id + 1
-        strings["%str"..string_id] = ""
-        return " %str"..string_id
-    end)
-    string = string:gsub("[%s\n]+\"(.-[^\\])\"",function(capt)
-        string_id = string_id + 1
-        strings["%str"..string_id] = capt:gsub("\\\"","\"")
-        return " %str"..string_id
-    end)
-    string = string:gsub("[%s\n]+%-%-(%w+)=\"\"",function(name)
-        opts[name] = ""
-        return ""
-    end)
-    string = string:gsub("[%s\n]+%-%-(%w+)=\"(.-[^\\])\"",function(name,value)
-        opts[name] = value:gsub("\\\"","\"")
-        return ""
-    end)
-    string = string:gsub("[%s\n]+%-%-(%w+)=(%S+)",function(name,value)
-        opts[name] = value
-        return ""
-    end)
-    string = string:gsub("[%s\n]+%-%-(%w+)",function(name)
-        opts[name] = true
-        return ""
-    end)
-    string = string:gsub("[%s\n]+%-(%w+)",function(args)
-        args:gsub(".",function(key)
-            opts[key] = true
-        end)
-        return ""
-    end)
-    string:gsub("([^%s\n]+)",function(match)
-        table.insert(args,match)
-    end)
-    for k,v in pairs(args) do
-        if v:match("%%str%d+") then
-            if strings[v] then
-                args[k] = strings[v]
-            end
+    local strings = parse_string(string,"[\"']")
+    local argmatch = argmatch or {}
+    local tokens,args,opts = {},{},{}
+    -- Tokenize
+    for k,v in pairs(strings) do
+        local padded_string = v:match("^%s*(.+)%s*$")
+        if padded_string:match("^[\"'].*[\"']$") then
+            table.insert(tokens,padded_string)
+        else
+            v:gsub("%S+",function(text)
+                table.insert(tokens,text)
+            end)
         end
     end
-    if argmatch and #argmatch > 0 then
-        local match,err = false
-        local new_args = {}
-        for k,v in pairs(argmatch) do
-            if not args[k] then
-                match = false
-                err = "Missing arguments: "..table.concat(argmatch,", ",k)
-                break
-            end
-            if v == "number" and tonumber(args[k]) then
-                match = true
-                new_args[k] = tonumber(args[k])
-            elseif v == "string" then
-                match = true
-                new_args[k] = args[k]
-            elseif special_case[v] then
-                match,new_args[k] = special_case[v](args[k],client,guild_id)
+    -- Remove opts and match arguments
+    for k,v in pairs(tokens) do
+        if v:match("^%-%-%w+=$") then
+            local optname = table.remove(tokens,k):match("^%-%-(%w+)=$")
+            local value = tokens[k]
+            opts[optname] = value
+        elseif v:match("^%-%-%w+$") then
+            local optname = v:match("^%-%-(%w+)$")
+            opts[optname] = true
+        elseif v:match("^%-%w+$") then
+            local opts = v:gsub("%w",function(c)
+                opts[c] = true
+            end)
+        else
+            local arg = table.remove(argmatch,1)
+            if arg then
+                local status,obj = object_types[arg](v,client,guild_id)
+                if not status then
+                    return false, args, opts, "Mismatched argument "..tostring(#arg)..": "..arg.." expected."
+                end
+                table.insert(args,obj)
             else
-                match = false
-            end
-            if match == false then
-                err = "Type mismatch for argument "..k..": "..argmatch[k].." expected."
-                break
+                table.insert(args,select(2,object_types["string"](v)))
             end
         end
-        for k,v in pairs(args) do
-            if not new_args[k] then
-                new_args[k] = v
-            end
-        end
-        return match,new_args,opts,err
-    else
-        return true,args,opts
     end
+    if #argmatch > 0 then
+        return false, args, opts, "Missing arguments: "..table.concat(argmatch,", ")
+    end
+    return true, args, opts
 end
 return air

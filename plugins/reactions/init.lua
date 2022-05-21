@@ -24,6 +24,7 @@ local function count(tab)
 end
 
 local pivot = command("pivot",{
+        category = "Automation",
         args = {
             "messageLink"
         },
@@ -32,7 +33,7 @@ local pivot = command("pivot",{
         },
         exec = function(msg,args,opts)
             if segment.pivot and count(segment.pivot.buttons) == 0 then
-                print("[REACTIONS] Deleting pivot: "..tostring(segment.pivot.message))
+                log("REACTIONS","Deleting pivot: "..tostring(segment.pivot.message))
                 segment.pivots[segment.pivot.message] = nil
             end
             local message = args[1]
@@ -41,7 +42,7 @@ local pivot = command("pivot",{
                 return false
             end
             if not segment.pivots[message.id] then
-                print("[REACTIONS] Creating pivot: "..tostring(message.id))
+                log("REACTIONS","Creating pivot: "..tostring(message.id))
                 segment.pivots[message.id] = {}
                 segment.pivots[message.id].message = message.id
                 segment.pivots[message.id].channel = message.channel.id
@@ -54,6 +55,7 @@ local pivot = command("pivot",{
 plugin:add_command(pivot)
 
 local role_toggle = command("role-toggle",{
+        category = "Automation",
         args = {
             "string",
             "role",
@@ -77,7 +79,7 @@ local role_toggle = command("role-toggle",{
                 msg:reply("Something went horribly wrong, but it's not your fault. This incident has been (hopefully) reported")
                 return false
             end
-            print("[REACTIONS] Adding role-toggle listener")
+            log("REACTIONS","Adding role-toggle listener")
             local grabEmoji = function(reaction)
                 segment.pivot.buttons[tostring(reaction.emojiId or reaction.emojiName)] = {
                     type = "role-toggler",
@@ -97,6 +99,7 @@ local role_toggle = command("role-toggle",{
     })
 plugin:add_command(role_toggle)
 local remove_reaction = command("remove-reaction",{
+        category = "Automation",
         perms = {
                 "administrator"
         },
@@ -111,7 +114,7 @@ local remove_reaction = command("remove-reaction",{
                 msg:reply("Something went horribly wrong, but it's not your fault. This incident has been (hopefully) reported")
                 return false
             end
-            print("[REACTIONS] Removing reaction listener")
+            log("REACTIONS","Removing reaction listener")
             if args[1] then
                 local emoji = getEmoji(args[1])
                 message:removeReaction(emoji,client.user.id)
@@ -127,6 +130,7 @@ local remove_reaction = command("remove-reaction",{
     })
 plugin:add_command(remove_reaction)
 local toggle = command("toggle",{
+        category = "Automation",
         args = {
             "string",
             "string",
@@ -151,7 +155,7 @@ local toggle = command("toggle",{
                 msg:reply("Something went horribly wrong, but it's not your fault. This incident has been (hopefully) reported")
                 return false
             end
-            print("[REACTIONS] Adding toggle listener")
+            log("REACTIONS","Adding toggle listener")
             local grabEmoji = function(reaction)
                 segment.pivot.buttons[tostring(reaction.emojiId or reaction.emojiName)] = {
                     type = "toggler",
@@ -172,6 +176,7 @@ local toggle = command("toggle",{
     })
 plugin:add_command(toggle)
 local button = command("button",{
+        category = "Automation",
         args = {
             "string",
             "string",
@@ -195,7 +200,7 @@ local button = command("button",{
                 msg:reply("Something went horribly wrong, but it's not your fault. This incident has been (hopefully) reported")
                 return false
             end
-            print("[REACTIONS] Adding button listener")
+            log("REACTIONS","Adding button listener")
             local grabEmoji = function(reaction)
                 segment.pivot.buttons[tostring(reaction.emojiId or reaction.emojiName)] = {
                     type = "button",

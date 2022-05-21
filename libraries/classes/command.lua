@@ -16,14 +16,16 @@ function command:__init(name,callback)
         allow_bots = false, --allow bots to execute the command
         typing_decorator = false, --set if the bot should be "typing" while the command executes
         prefix = true, --if true check for prefix at the start. if not, don't check for prefix
-        no_parsing = false, --check if you want to disable the message argument parsing process
         timeout = 1000, --set the timeout for a command
     }
     if type(callback) == "table" then
         for k,v in pairs(callback.options or {}) do 
-                self.options[k] = v
+            self.options[k] = v
         end
         self.callback = callback.exec
+        if callback.category then
+            self.category = callback.category
+        end
         self.args = callback.args or self.args
         if callback.users then
             for k,v in pairs(callback.users) do
@@ -86,6 +88,7 @@ function command:get_help()
     end
     return self.help
 end
+
 function command:set_timeout_callback(fn)
     assert(type(fn) == "function","function expected, got "..type(fn))
     self.timeout_callback = fn
@@ -93,40 +96,45 @@ function command:set_timeout_callback(fn)
 end
 
 --check the permissions for command
-function command:check_permissions(message)
-    if message.author.bot and (not self.options.allow_bots) then
-        return false
-    end
-    if discordia.Date():toMilliseconds()-self.options.timeout < self.timer then
+function command:check_permissions(message,special_flag)
+    local ctime = discordia.Date():toMilliseconds()
+    if (ctime-self.options.timeout < self.timer) and (not ignore_flag) then
         if self.timeout_callback then
             self.timeout_callback(message)
-            return false
         end
+        return false
     end
     self.timer = discordia.Date():toMilliseconds()
-    if self.rules:check_user(tostring(message.author.id)) then
-        local found,allow = self.rules:check_user(tostring(message.author.id))
-        return allow
+    -- user rules first, group second, permission rules last
+    if ignore_flag == 2 then
+        return true
     end
-    if self.rules:check_group(message.member.roles) then
-        local found,allow = self.rules:check_group(message.member.roles)
-        return allow
+    local User, allowUser = self.rules:check_user(tostring(message.author.id))
+    local Group, allowGroup = self.rules:check_group(message.member.highestRole)
+    if User then
+        return allowUser
+    end
+    if Group then
+        return allowGroup
     end
     return self.rules:check_perm(message.member:getPermissions(message.channel))
 end
 --the main entry point for the command - execute the callback within after
 --multiple checks
-function command:exec(message,args,opts)
-    local exec = self.callback
-    if not self.callback then
-        error("Callback not set for command "..self.name)
-    end 
-    if self.decorator then
-        self.callback = self.decorator(self.callback)
+function command:exec(message,ignore_flag)
+    if message.author.bot and (not self.options.allow_bots) then
+        return false
     end
-    local strstart,strend = message.content:find(self.name,1,true)
-    content = message.content:sub(strend+1,-1)
-    if self:check_permissions(message) then
+    if self:check_permissions(message,ignore_flag) then
+        local exec = self.callback
+        if not self.callback then
+            error("Callback not set for command "..self.name)
+        end 
+        if self.decorator then
+            self.callback = self.decorator(self.callback)
+        end
+        local strstart,strend = message.content:find(self.name,1,true)
+        content = message.content:sub(strend+1,-1)
         if self.options.typing_decorator then
             message.channel:broadcastTyping()
         end

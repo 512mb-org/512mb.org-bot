@@ -11,6 +11,8 @@ local json = import("json")
 local core = import("core")
 local emitter_proxy = import("classes.emitter-proxy")
 local table_utils = import("table-utils") 
+local log = import("logging")
+
 function plugin_handler:__init(parent_server)
     assert(parent_server,"server handler to assign the plugin handler to has not been provided")
     self.server_handler = parent_server
@@ -18,7 +20,7 @@ function plugin_handler:__init(parent_server)
     self.plugin_info = {}
     self.plugin_paths = {}
     self.server_handler.event_emitter:on("serverSaveConfig",function()
-        print("[SERVER] Saving plugins configs")
+        log("SERVER", "Saving plugins configs")
         for name,plugin in pairs(self.plugins) do
             self:save_plugin_config(name)
         end
@@ -98,7 +100,7 @@ function plugin_handler:load(name)
         server = self.server_handler,
         command_handler = self.server_handler.command_handler,
         plugin_handler = self.server_handler.plugin_handler,
-        log = function() end,
+        log = log,
         config = self:load_plugin_config(name),
         import = import,
     },{__index = _G})

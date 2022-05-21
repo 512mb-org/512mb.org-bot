@@ -4,6 +4,7 @@ local plugin = pluginc("help")
 local color = discordia.Color.fromHex
 
 local help_command = command("help",{
+    category = "Utilities",
     exec = function(msg,args,opts)
         local embed = {
             color = color("32b3bc").value
@@ -25,7 +26,7 @@ local help_command = command("help",{
                     embed.color = color("990000").value
                 else
                     embed.title = "Plugin ``"..args[1].."``"
-                    embed.description = "``"..table.concat(comms,"``,``").."``"
+                    embed.description = "``"..table.concat(comms,"``, ``").."``"
                 end
             end
         else
@@ -36,7 +37,7 @@ local help_command = command("help",{
             for name,category in pairs(meta.categories) do
                 table.insert(embed.fields,{
                     name = name,
-                    value = "``"..table.concat(category,"``,``").."``"
+                    value = "``"..table.concat(category,"``, ``").."``"
                 })
             end
         end

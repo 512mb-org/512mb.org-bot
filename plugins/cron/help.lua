@@ -47,4 +47,5 @@ return {
         {name = "Perms:",value = "administrator"},
       }
     }},
+    ["date"] = "Print current date and time"
 }

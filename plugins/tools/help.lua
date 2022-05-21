@@ -28,7 +28,7 @@ return {
     }},
     ["embed"] = {embed={
         title = "Convert JSON objects into embeds",
-		description = "If you've worked with discord.js before, this might be simple. If you haven't, then check out https://github.com/yessiest/SuppaBot/wiki/Embeds",
+		description = "If you've worked with discord.js before, this might be simple. If you haven't, then check out https://github.com/512mb-org/512mb.org-bot/wiki/Embeds",
         fields = {
             {name = "Usage",value = [[embed {code}]]},
             {name = "Perms: ",value = "All"},

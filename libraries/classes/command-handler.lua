@@ -22,7 +22,6 @@ function command_handler:add_prefix(prefix)
     return true
 end
 function command_handler:remove_prefix(prefix)
-    local prefix = purify_escapes(prefix)
     if self.prefixes[prefix] and table_utils.count(self.prefixes) > 1 then
         self.prefixes[prefix] = nil
         return true
@@ -83,21 +82,21 @@ function command_handler:get_metadata()
         categories = categories
     }
 end
-function command_handler:handle(message)
+function command_handler:handle(message,ignore_flag)
     local content = message.content
     local prefix = ""
     local command
     for k,v in pairs(self.prefixes) do
         if content:match("^"..v) then
-            prefix = v
+            prefix = k
         end
     end
     command = content:sub(prefix:len()+1,-1):match("^[%-_%w]+")
     if self.pool[command] then
         if (prefix == "") and self.pool[command].options.prefix == false then
-            self.pool[command]:exec(message)
+            self.pool[command]:exec(message,ignore_flag)
         elseif (prefix ~= "") and self.pool[command].options.prefix == true then
-            self.pool[command]:exec(message)
+            self.pool[command]:exec(message,ignore_flag)
         end
     end
 end
