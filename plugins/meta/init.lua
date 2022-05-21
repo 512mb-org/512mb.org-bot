@@ -305,6 +305,24 @@ local c_adminSpeak = command("adminSpeak", {
 })
 plugin:add_command(c_adminSpeak)
 
+local c_adminSendToChannel = command("adminSendToChannel", {
+    category = "Utilities",
+    args = {
+        "textChannel",
+        "string"
+    },
+    exec = function(msg,args,opts)
+        local channel = args[1]
+        table.remove(args,1)
+        local text = table.concat(args," ")
+        channel:send(text)
+    end,
+    perms = {
+        "mentionEveryone"
+    }
+})
+plugin:add_command(c_adminSendToChannel)
+
 local c_echo = command("echo",{
     category = "Utilities",
     args = {
@@ -316,6 +334,21 @@ local c_echo = command("echo",{
     end,
 })
 plugin:add_command(c_echo)
+
+local c_sendToChannel = command("sendToChannel",{
+    category = "Utilities",
+    args = {
+        "textChannel",
+        "string"
+    },
+    exec = function(msg,args,opts)
+        local channel = args[1]
+        table.remove(args,1)
+        local text = purify.purify_pings(msg, table.concat(args," "))
+        channel:send(text)
+    end,
+})
+plugin:add_command(c_sendToChannel)
 
 local c_pingself = command("pingself",{
     category = "Utilities",

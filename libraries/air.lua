@@ -1,6 +1,7 @@
 --rewrite this lib (P.S: done)
 --P.S: air stands for Advanced Input Recognition, although technically it's not all that advanced
 local parse_string = require("string_parse")
+local table_utils = require("table-utils")
 air = {}
 object_types = {
     ["voiceChannel"] = function(id,client,guild_id)
@@ -105,7 +106,7 @@ object_types = {
 
 air.parse = function(string,argmatch,client,guild_id)
     local strings = parse_string(string,"[\"']")
-    local argmatch = argmatch or {}
+    local argmatch = table_utils.shallowcopy(argmatch or {})
     local tokens,args,opts = {},{},{}
     -- Tokenize
     for k,v in pairs(strings) do
