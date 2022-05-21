@@ -26,10 +26,7 @@ local triggerOnce = function(evname,args,vars)
     end
 end
 
-client:on("messageCreate",function(msg)
-    if (not msg.guild) or (tostring(msg.guild.id) ~= tostring(id)) then
-        return
-    end
+event_emitter:on("messageCreate",function(msg)
     local content = msg.content
     local user = msg.author.id
     local channelid = msg.channel.id
@@ -45,10 +42,7 @@ client:on("messageCreate",function(msg)
     triggerOnce("messageOnce",{content,user,channelid},args)
 end)
 
-client:on("userBan",function(user,guild)
-    if tostring(guild.id) ~= tostring(id) then
-        return
-    end
+event_emitter:on("userBan",function(user,guild)
     args = {
         ["%$USER"] = user.id,
         ["%$USERNAME"] = user.name
@@ -59,10 +53,7 @@ client:on("userBan",function(user,guild)
     triggerOnce("banOnce",{user.id},args)
 end)    
 
-client:on("userUnban",function(user,guild)
-    if tostring(guild.id) ~= tostring(id) then
-        return
-    end 
+event_emitter:on("userUnban",function(user,guild)
     args = {
         ["%$USER"] = user.id,
         ["%$USERNAME"] = user.name
@@ -73,14 +64,11 @@ client:on("userUnban",function(user,guild)
     triggerOnce("unbanOnce",{user.id},args)
 end)
 
-client:on("memberJoin", function(member)
-    if tostring(member.guild.id) ~= tostring(id) then
-        return
-    end
+event_emitter:on("memberJoin", function(member)
     args = {
         ["%$USER"] = member.id,
         ["%$USERNAME"] = member.name,
-        ["%$AGE"] = member.user.createdAt,
+        ["%$AGE"] = discordia.Date():toSeconds()-member.user.createdAt,
         ["%$DISCRIM"] = member.user.discriminator,
         ["%$TAG"] = member.user.tag
     }
@@ -88,24 +76,21 @@ client:on("memberJoin", function(member)
     trigger("join",{
         member.id,
         member.name,
-        member.user.createdAt
+        discordia.Date():toSeconds()-member.user.createdAt
     },args)
     -- @joinOnce: userid, username, age, $USER, $USERNAME, $AGE, $DISCRIM, $TAG
     triggerOnce("joinOnce",{
         member.id,
         member.name,
-        member.user.createdAt
+        discordia.Date():toSeconds()-member.user.createdAt
     },args)
 end)
 
-client:on("memberLeave", function(member)
-    if tostring(member.guild.id) ~= tostring(id) then
-        return
-    end
+event_emitter:on("memberLeave", function(member)
     args = {
         ["%$USER"] = member.id,
         ["%$USERNAME"] = member.name,
-        ["%$AGE"] = member.user.createdAt,
+        ["%$AGE"] = discordia.Date():toSeconds()-member.user.createdAt,
         ["%$DISCRIM"] = member.user.discriminator,
         ["%$TAG"] = member.user.tag,
         ["%$GUILDTIME"] = member.joinedAt,

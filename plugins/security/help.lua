@@ -43,4 +43,22 @@ return {
             {name = "Options: ", value = "`--regex (regex)` - match content against regex; \n`--user (user)` - match user against id/name; \n`-w` - match webhook messages"}
         }
     }},
+    ["ban"] = { embed = {
+        title = "Ban members",
+        description = "nuff said.",
+        fields = {
+            {name = "Usage: ", value = "ban <member>"},
+            {name = "Perms: ", value = "banMembers"},
+            {name = "Options: ", value = "--reason=\"<reason>\""},
+        },
+    }},
+    ["kick"] = { embed = {
+        title = "Ban members",
+        description = "nuff said.",
+        fields = {
+            {name = "Usage: ", value = "kick <member>"},
+            {name = "Perms: ", value = "kickMembers"},
+            {name = "Options: ", value = "--reason=\"<reason>\""},
+        },
+    }},
 }

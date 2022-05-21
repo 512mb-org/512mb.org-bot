@@ -46,4 +46,4 @@ if not tempfile then
 end
 local nstr = tempfile:read("*l")
 tempfile:close()
-client:run('Bot '..nstr)
+client:run('Bot '..nstr:match("^%s*(.+)%s*$"))

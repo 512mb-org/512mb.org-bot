@@ -172,7 +172,7 @@ local c_aliases = command("aliases", {
                 return fields
             end)(),
             footer = {
-                text = "Events "..tostring(page-4).." - "..tostring(page).." | Total: "..tostring(#events)
+                text = "Aliases "..tostring(page-4).." - "..tostring(page).." | Total: "..tostring(#events)
             }
         }})
     end

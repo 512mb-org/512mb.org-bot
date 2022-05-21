@@ -4,6 +4,8 @@ local plugin = pluginc("cron")
 local cron = import("cron")
 local fake_message = import("fake_message")
 local md5 = import("md5")
+local discordia = import("discordia")
+local event_emitter = events
 local events = {
     timer = {},
     event = {}
@@ -332,10 +334,11 @@ local data = fhandler:read("*a")
 fhandler:close()
 local eventfunc = load(data,"event loader: "..plugin_path.."/events.lua",nil,setmetatable({
     id = id,
-    client = client,
+    event_emitter = event_emitter,
     exec = exec,
     events = events,
-    config = config
+    config = config,
+    discordia = discordia
 },{__index = _G}))
 eventfunc()
 timer:start(true)

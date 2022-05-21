@@ -48,6 +48,34 @@ local revokerole = command("revoke-role",{
 })
 plugin:add_command(revokerole)
 
+local ban = command("ban",{
+    category = "Security",
+    perms = {
+        "banMembers"
+    },
+    args = {
+        "member"
+    },
+    exec = function(msg,args,opts)
+        return args[1]:ban(opts["reason"])
+    end
+})
+plugin:add_command(ban)
+
+local kick = command("kick", {
+    category = "Security",
+    perms = {
+        "kickMembers",
+    },
+    args = {
+        "member"
+    },
+    exec = function(msg,args,opts)
+        return args[1]:ban(opts["reason"])
+    end
+})
+plugin:add_command(kick)
+
 local warn = command("warn",{
     category = "Security",
     perms = {

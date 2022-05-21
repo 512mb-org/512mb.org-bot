@@ -1,11 +1,13 @@
 [![forthebadge](https://forthebadge.com/images/badges/powered-by-black-magic.svg)](https://forthebadge.com) [![made-with-luvit.svg](https://512mb.org/git/Yessiest/badges/raw/branch/master/badges/made-with-luvit.svg)](https://forthebadge.com/generator/)
 
 # 512mb.org-bot
-yet another 512mb bot. it's running on a discord library for the luvit framework called [Discordia](https://github.com/SinisterRectus/discordia)
+Yet another 512mb bot. It's running on a discord library for the luvit framework called [Discordia](https://github.com/SinisterRectus/discordia). For guides on using particular features of the bot check out the [wiki](https://github.com/512mb-org/512mb.org-bot/wiki).
 
 # Self-hosting 
-place the bot token in the "./token" file, change server id in bot.lua to the id of your server.
-compile [luvit](https://luvit.io) and run bot.lua. 
+1. Get a bot token and place it in ./token 
+2. Install libqalculate and compile luaqalc
+3. Place the ``libqalculator.so`` in ./libraries/
+4. Get [luvit](https://luvit.io) and run ``bot.lua`` using the ``luvit`` binary
 
 # License 
 ```
