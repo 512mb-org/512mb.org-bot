@@ -5,6 +5,8 @@ local cron = import("cron")
 local fake_message = import("fake_message")
 local md5 = import("md5")
 local discordia = import("discordia")
+local timer = import("timer")
+local sync_emitter = discordia.Emitter()
 local event_emitter = events
 local events = {
     timer = {},
@@ -24,13 +26,16 @@ local exec = function(v,command)
         log("ERROR","Failed event: "..command)
         return
     end
-    if not msg.member then
-        log("ERROR","Unable to retrieve event creator: "..tostring(v.user.id))
+    --forcefully caching the goddamn member
+    local member = msg.guild:getMember(v.user)
+    if not member then
+        log("ERROR","Unable to retrieve event creator: "..tostring(v.user))
         log("ERROR","Failed event: "..command)
         return
     end
     command_handler:handle(fake_message(msg,{
         delete = function() end,
+        member = member,
         content = command
     }),1)
 end
@@ -152,8 +157,7 @@ local remove_user_event = function(user_id,id)
     return false
 end
 
--- load timer events
-for k,v in pairs(config.events.timer) do
+sync_emitter:on("createEventEntry",function(k,v,timer,evname)
     local channel = client:getChannel(v.channel)
     if channel then
         local message = channel:getMessage(v.id)
@@ -162,19 +166,38 @@ for k,v in pairs(config.events.timer) do
             --orphan events with mismatching hashes
             if status and (hash ~= k) then 
                 log("WARNING", "Hash mismatch, orphaning event.")
-                events.timer[k] = nil
-                config.events.timer[k] = nil
-                create_event(message,v.comm)
+                if timer then
+                    config.events.timer[k] = nil
+                    config.events.timer[hash] = v
+                else
+                    config.events.event[evname][k] = nil
+                    config.events.event[evname][hash] = v
+                end
             end
         else
             log("ERROR","No message with id "..v.id)
             log("ERROR","Event id: "..k..".\nEvent description: ")
             print(v.comm)
+            sync_emitter:emit("eventEntryCreated",false,k)
         end
     else
         log("ERROR","No channel with id "..v.channel)
         log("ERROR","Event id: "..k..".\nEvent description: ")
         print(v.comm)
+        sync_emitter:emit("eventEntryCreated",false,k)
+    end
+    sync_emitter:emit("eventEntryCreated",true,k)
+end)
+
+-- load timer events
+for k,v in pairs(config.events.timer) do
+    sync_emitter:emit("createEventEntry",k,v,true)
+    local cor, ev, hash = sync_emitter:waitFor("eventEntryCreated")
+    if (not cor) or (not ev) then
+        log("INFO","Retrying in 2 seconds")
+        timer.setTimeout(2000,function()
+            sync_emitter:emit("createEventEntry",k,v,true)
+        end)
     end
 end
 
@@ -182,27 +205,13 @@ end
 for _,evtype in pairs(config.events.event) do
     events.event[_] = {}
     for k,v in pairs(evtype) do
-        local channel = client:getChannel(v.channel)
-        if channel then
-            local message = channel:getMessage(v.id)
-            if message then
-                local status,hash = create_event(message,v.comm,true)
-                --orphan events with mismatching hashes
-                if status and (hash ~= k) then 
-                    log("WARNING", "Hash mismatch, orphaning event.")
-                    events.event[_][k] = nil
-                    config.events.event[_][k] = nil
-                    create_event(message,v.comm)
-                end
-            else
-                log("ERROR","No message with id "..v.id)
-                log("ERROR","Event "..k..".\nEvent description: ")
-                config.events.event[_][k] = nil
-            end
-        else
-            log("ERROR","No channel with id "..v.channel)
-            log("ERROR","Event "..k..".\nEvent description: ")
-            config.events.event[_][k] = nil
+        sync_emitter:emit("createEventEntry",k,v,false,_)
+        local cor,ev,hash = sync_emitter:waitFor("eventEntryCreated")
+        if (not cor) or (not ev) then
+            log("INFO","Retrying in 2 seconds")
+            timer.setTimeout(2000,function()
+                sync_emitter:emit("createEventEntry",k,v,false,_)
+            end)
         end
     end
 end
