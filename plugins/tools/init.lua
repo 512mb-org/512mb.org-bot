@@ -104,7 +104,30 @@ local calculate = command("calculate",{
 		"string"
 	},
 	exec = function(msg,args,opts)
-        msg:reply(qalculator.qalc(table.concat(args," "),opts["e"]))
+        local e,i,f = opts["e"],opts["i"],opts["f"]
+        local result = {embed = {
+            title = "Result",
+            fields = {
+                {name = "Value: ",value = nil},
+            },
+            footer = {
+                text = "Powered by libqalculate"
+            },
+            color = discordia.Color.fromHex("7A365F").value
+        }}
+        local value,err = qalculator.qalc(table.concat(args," "),e,i,f)
+        result.embed.fields[1].value = "```"..value.."```"
+        if opts["o"] then
+            msg:reply(value)
+            return
+        end
+        if #err > 0 then
+            result.embed.fields[2] = {
+                name = "Messages: ",
+                value = "```"..table.concat(err,"\n").."```"
+            }
+        end
+        msg:reply(result)
 	end,
 })
 plugin:add_command(calculate)

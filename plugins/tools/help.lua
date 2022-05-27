@@ -7,7 +7,12 @@ return {
         fields = {
             {name = "Usage",value = [[calculate "<expression>"]]},
             {name = "Perms: ",value = "All"},
-            {name = "Options",value = "`-e` - exact mode"}
+            {name = "Options",value = [[
+`-e` - exact mode (try to be as exact as possible)
+`-i` - interval mode (imprecise numbers will be calculated using variance formula)
+`-f` - factorize mode (factorize result, default behaviour is to expand result)
+`-o` - output only (don't show embed and messages)
+]]}
         }
     }},
 	["pfp"] = "Show the profile picture of a user, or if none is specified, of yourself",

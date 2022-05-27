@@ -13,32 +13,59 @@ local events = {
     event = {}
 }
 
-local exec = function(v,command)
+sync_emitter:on("executeCommand",function(v,command,tried)
     local channel = client:getChannel(v.channel)
     if not channel then
         log("ERROR","Unable to retrieve event channel: "..tostring(v.channel))
-        log("ERROR","Failed event: "..command)
-        return
+        log("ERROR","Failed event: "..command.."\nChannel Object: "..tostring(channel))
+        if not tried then
+            log("INFO","Retrying...")
+            timer.setTimeout(2000,function()
+                sync_emitter:emit("executeCommand",v,command,true)
+            end)
+            return
+        else
+            log("ERROR","Tried 2 times to run the event and failed.")
+            return
+        end
     end
     local msg = channel:getMessage(v.id)
     if not msg then
         log("ERROR","Unable to retrieve event message: "..tostring(v.id))
-        log("ERROR","Failed event: "..command)
-        return
+        log("ERROR","Failed event: "..command.."\nMessage object: "..tostring(msg).."\nChannel: "..tostring(channel.id))
+        if not tried then
+            log("INFO","Retrying...")
+            timer.setTimeout(2000,function()
+                sync_emitter:emit("executeCommand",v,command,true)
+            end)
+            return
+        else
+            log("ERROR","Tried 2 times to run the event and failed.")
+            return
+        end
     end
     --forcefully caching the goddamn member
     local member = msg.guild:getMember(v.user)
     if not member then
         log("ERROR","Unable to retrieve event creator: "..tostring(v.user))
         log("ERROR","Failed event: "..command)
-        return
+        if not tried then
+            log("INFO","Retrying...")
+            timer.setTimeout(2000,function()
+                sync_emitter:emit("executeCommand",v,command,true)
+            end)
+            return
+        else
+            log("ERROR","Tried 2 times to run the event and failed.")
+            return
+        end
     end
     command_handler:handle(fake_message(msg,{
         delete = function() end,
         member = member,
         content = command
     }),1)
-end
+end)
 
 if not config.events then
     config.events = {
@@ -328,7 +355,7 @@ timer:on("min",function()
     for k,v in pairs(events.timer) do
         local status,command = v.comm(os.date("*t"))
         if status then
-            exec(v,command)
+            sync_emitter:emit("executeCommand",v,command)
             if v.type == "onetime" then
                 events.timer[k] = nil
                 config.events.timer[k] = nil
@@ -344,7 +371,9 @@ fhandler:close()
 local eventfunc = load(data,"event loader: "..plugin_path.."/events.lua",nil,setmetatable({
     id = id,
     event_emitter = event_emitter,
-    exec = exec,
+    exec = function(v,command)
+        sync_emitter:emit("executeCommand",v,command)
+    end,
     events = events,
     config = config,
     discordia = discordia
