@@ -13,7 +13,13 @@ local events = {
     event = {}
 }
 
-sync_emitter:on("executeCommand",function(v,command,tried)
+-- timer threads are not API-friendly so we need to call certain functions
+-- in context of a discordia emitter.
+sync_emitter:on("execContext",function(comm)
+    comm()
+end)
+
+exec = function(v,command,tried)
     local channel = client:getChannel(v.channel)
     if not channel then
         log("ERROR","Unable to retrieve event channel: "..tostring(v.channel))
@@ -21,7 +27,9 @@ sync_emitter:on("executeCommand",function(v,command,tried)
         if not tried then
             log("INFO","Retrying...")
             timer.setTimeout(2000,function()
-                sync_emitter:emit("executeCommand",v,command,true)
+                sync_emitter:emit("execContext",function()
+                    exec(v,command,true)
+                end)
             end)
             return
         else
@@ -36,7 +44,9 @@ sync_emitter:on("executeCommand",function(v,command,tried)
         if not tried then
             log("INFO","Retrying...")
             timer.setTimeout(2000,function()
-                sync_emitter:emit("executeCommand",v,command,true)
+                sync_emitter:emit("execContext",function()
+                    exec(v,command,true)
+                end)
             end)
             return
         else
@@ -52,7 +62,9 @@ sync_emitter:on("executeCommand",function(v,command,tried)
         if not tried then
             log("INFO","Retrying...")
             timer.setTimeout(2000,function()
-                sync_emitter:emit("executeCommand",v,command,true)
+                sync_emitter:emit("execContext",function()
+                    exec(v,command,true)
+                end)
             end)
             return
         else
@@ -65,7 +77,7 @@ sync_emitter:on("executeCommand",function(v,command,tried)
         member = member,
         content = command
     }),1)
-end)
+end
 
 if not config.events then
     config.events = {
@@ -184,7 +196,7 @@ local remove_user_event = function(user_id,id)
     return false
 end
 
-sync_emitter:on("createEventEntry",function(k,v,timer,evname)
+register_event = function(k,v,timer,evname)
     local channel = client:getChannel(v.channel)
     if channel then
         local message = channel:getMessage(v.id)
@@ -205,28 +217,26 @@ sync_emitter:on("createEventEntry",function(k,v,timer,evname)
             log("ERROR","No message with id "..v.id)
             log("ERROR","Event id: "..k..".\nEvent description: ")
             print(v.comm)
-            sync_emitter:emit("eventEntryCreated",false,k)
-            return
+            return false,k
         end
     else
         log("ERROR","No channel with id "..v.channel)
         log("ERROR","Event id: "..k..".\nEvent description: ")
         print(v.comm)
-        sync_emitter:emit("eventEntryCreated",false,k)
-        return
+        return false,k
     end
-    sync_emitter:emit("eventEntryCreated",true,k)
-end)
+    return true,k
+end
 
 -- load timer events
 for k,v in pairs(config.events.timer) do
-    sync_emitter:emit("createEventEntry",k,v,true)
-    local cor, ev, hash = sync_emitter:waitFor("eventEntryCreated",2000,
-        function(ev,hash) return hash == k end)
-    if (not cor) or (not ev) then
+    local ev,hash = register_event(k,v,true)
+    if (not ev) then
         log("INFO","Retrying event "..k.."  in 2 seconds")
         timer.setTimeout(2000,function()
-            sync_emitter:emit("createEventEntry",k,v,true)
+            sync_emitter:emit("execContext",function()
+                register_event(k,v)
+            end)
         end)
     end
 end
@@ -235,13 +245,13 @@ end
 for _,evtype in pairs(config.events.event) do
     events.event[_] = {}
     for k,v in pairs(evtype) do
-        sync_emitter:emit("createEventEntry",k,v,false,_)
-        local cor,ev,hash = sync_emitter:waitFor("eventEntryCreated",2000,
-            function(ev,hash) return hash == k end)
-        if (not cor) or (not ev) then
+        local ev,hash = register_event(k,v,true)
+        if (not ev) then
             log("INFO","Retrying event "..k.." in 2 seconds")
             timer.setTimeout(2000,function()
-                sync_emitter:emit("createEventEntry",k,v,false,_)
+                sync_emitter:emit("execContext",function()
+                    register_event(k,v)
+                end)
             end)
         end
     end
@@ -375,9 +385,7 @@ fhandler:close()
 local eventfunc = load(data,"event loader: "..plugin_path.."/events.lua",nil,setmetatable({
     id = id,
     event_emitter = event_emitter,
-    exec = function(v,command)
-        sync_emitter:emit("executeCommand",v,command)
-    end,
+    exec = exec,
     events = events,
     config = config,
     discordia = discordia
