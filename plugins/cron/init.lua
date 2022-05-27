@@ -206,12 +206,14 @@ sync_emitter:on("createEventEntry",function(k,v,timer,evname)
             log("ERROR","Event id: "..k..".\nEvent description: ")
             print(v.comm)
             sync_emitter:emit("eventEntryCreated",false,k)
+            return
         end
     else
         log("ERROR","No channel with id "..v.channel)
         log("ERROR","Event id: "..k..".\nEvent description: ")
         print(v.comm)
         sync_emitter:emit("eventEntryCreated",false,k)
+        return
     end
     sync_emitter:emit("eventEntryCreated",true,k)
 end)
@@ -219,9 +221,10 @@ end)
 -- load timer events
 for k,v in pairs(config.events.timer) do
     sync_emitter:emit("createEventEntry",k,v,true)
-    local cor, ev, hash = sync_emitter:waitFor("eventEntryCreated",4000)
+    local cor, ev, hash = sync_emitter:waitFor("eventEntryCreated",2000,
+        function(ev,hash) return hash == k end)
     if (not cor) or (not ev) then
-        log("INFO","Retrying in 2 seconds")
+        log("INFO","Retrying event "..k.."  in 2 seconds")
         timer.setTimeout(2000,function()
             sync_emitter:emit("createEventEntry",k,v,true)
         end)
@@ -233,9 +236,10 @@ for _,evtype in pairs(config.events.event) do
     events.event[_] = {}
     for k,v in pairs(evtype) do
         sync_emitter:emit("createEventEntry",k,v,false,_)
-        local cor,ev,hash = sync_emitter:waitFor("eventEntryCreated",4000)
+        local cor,ev,hash = sync_emitter:waitFor("eventEntryCreated",2000,
+            function(ev,hash) return hash == k end)
         if (not cor) or (not ev) then
-            log("INFO","Retrying in 2 seconds")
+            log("INFO","Retrying event "..k.." in 2 seconds")
             timer.setTimeout(2000,function()
                 sync_emitter:emit("createEventEntry",k,v,false,_)
             end)
