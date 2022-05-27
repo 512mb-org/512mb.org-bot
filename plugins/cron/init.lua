@@ -219,7 +219,7 @@ end)
 -- load timer events
 for k,v in pairs(config.events.timer) do
     sync_emitter:emit("createEventEntry",k,v,true)
-    local cor, ev, hash = sync_emitter:waitFor("eventEntryCreated")
+    local cor, ev, hash = sync_emitter:waitFor("eventEntryCreated",4000)
     if (not cor) or (not ev) then
         log("INFO","Retrying in 2 seconds")
         timer.setTimeout(2000,function()
@@ -233,7 +233,7 @@ for _,evtype in pairs(config.events.event) do
     events.event[_] = {}
     for k,v in pairs(evtype) do
         sync_emitter:emit("createEventEntry",k,v,false,_)
-        local cor,ev,hash = sync_emitter:waitFor("eventEntryCreated")
+        local cor,ev,hash = sync_emitter:waitFor("eventEntryCreated",4000)
         if (not cor) or (not ev) then
             log("INFO","Retrying in 2 seconds")
             timer.setTimeout(2000,function()
