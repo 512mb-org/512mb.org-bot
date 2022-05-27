@@ -7,7 +7,7 @@ local command = class("Command")
 local acl = import("classes.command-acl")
 local discordia = import("discordia")
 function command:__init(name,callback)
-    assert(name:match("^[-_%w]+$"),"Name can only contain alphanumeric characters, underscores or dashes")
+    assert(name:match("^%S+$"),"Name cannot contain any space characters")
     self.rules = acl()
     self.name = name
     self.timer = discordia.Date():toMilliseconds()
