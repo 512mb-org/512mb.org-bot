@@ -16,7 +16,7 @@ return {
         }
     }},
 	["pfp"] = "Show the profile picture of a user, or if none is specified, of yourself",
-	["markpov"] = { embed = {
+	["markov"] = { embed = {
         title = "Generate some text using markov chains",
         description = "Generates text using the markov chain rule applied to a predefined set of words",
         fields = {
