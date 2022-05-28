@@ -25,7 +25,7 @@ exec = function(v,command,tried)
         log("ERROR","Unable to retrieve event channel: "..tostring(v.channel))
         log("ERROR","Failed event: "..command.."\nChannel Object: "..tostring(channel))
         if not tried then
-            log("INFO","Retrying...")
+            log("CRON","Retrying...")
             timer.setTimeout(2000,function()
                 sync_emitter:emit("execContext",function()
                     exec(v,command,true)
@@ -42,7 +42,7 @@ exec = function(v,command,tried)
         log("ERROR","Unable to retrieve event message: "..tostring(v.id))
         log("ERROR","Failed event: "..command.."\nMessage object: "..tostring(msg).."\nChannel: "..tostring(channel.id))
         if not tried then
-            log("INFO","Retrying...")
+            log("CRON","Retrying...")
             timer.setTimeout(2000,function()
                 sync_emitter:emit("execContext",function()
                     exec(v,command,true)
@@ -60,7 +60,7 @@ exec = function(v,command,tried)
         log("ERROR","Unable to retrieve event creator: "..tostring(v.user))
         log("ERROR","Failed event: "..command)
         if not tried then
-            log("INFO","Retrying...")
+            log("CRON","Retrying...")
             timer.setTimeout(2000,function()
                 sync_emitter:emit("execContext",function()
                     exec(v,command,true)
@@ -225,6 +225,7 @@ register_event = function(k,v,timer,evname)
         print(v.comm)
         return false,k
     end
+    log("CRON","Loaded event "..k)
     return true,k
 end
 
@@ -232,7 +233,7 @@ end
 for k,v in pairs(config.events.timer) do
     local ev,hash = register_event(k,v,true)
     if (not ev) then
-        log("INFO","Retrying event "..k.."  in 2 seconds")
+        log("CRON","Retrying event "..k.."  in 2 seconds")
         timer.setTimeout(2000,function()
             sync_emitter:emit("execContext",function()
                 register_event(k,v)
@@ -247,7 +248,7 @@ for _,evtype in pairs(config.events.event) do
     for k,v in pairs(evtype) do
         local ev,hash = register_event(k,v,true)
         if (not ev) then
-            log("INFO","Retrying event "..k.." in 2 seconds")
+            log("CRON","Retrying event "..k.." in 2 seconds")
             timer.setTimeout(2000,function()
                 sync_emitter:emit("execContext",function()
                     register_event(k,v)
@@ -369,7 +370,7 @@ timer:on("min",function()
     for k,v in pairs(events.timer) do
         local status,command = v.comm(os.date("*t"))
         if status then
-            sync_emitter:emit("executeCommand",v,command)
+            exec(v,command)
             if v.type == "onetime" then
                 events.timer[k] = nil
                 config.events.timer[k] = nil
