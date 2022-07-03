@@ -24,10 +24,10 @@ end
 local function add_alias(name,comm,prefix,description)
     if (not aliases[name]) then
         log("ALIAS","Adding alias \""..name.."\" for \""..comm.."\"")
-        config.aliases[name] = {comm = comm,prefix = (prefix == nil)}
+        config.aliases[name] = {comm = comm,prefix = prefix}
         aliases[name] = command(name,{
             help = "Alias for ``"..comm.."``",
-            usage = ((prefix and globals.prefix) or "")..name,
+            usage = name,
             category = "Aliases",
             exec = function(msg,args2,opts)
                 local str = msg.content:gsub("^%S+ ?","") 
@@ -42,7 +42,7 @@ local function add_alias(name,comm,prefix,description)
                 }))
             end,
             options = {
-                prefix = (prefix == nil),
+                prefix = config.aliases[name].prefix,
                 custom = true
             }
         })
@@ -120,7 +120,7 @@ local c_alias = command("alias", {
     },
     category = "Automation",
     exec = function(msg,args,opts)
-        if add_alias(args[1],args[2],(opts["prefix"] or opts["p"]),opts["description"]) then
+        if add_alias(args[1],args[2],not (opts["prefix"] or opts["p"]),opts["description"]) then
             msg:reply("Bound ``"..args[1].."`` as an alias to ``"..args[2].."``")
         else
             msg:reply("``"..args[1].."`` is already bound")
