@@ -123,7 +123,7 @@ air.parse = function(string,argmatch,client,guild_id)
     for k,v in pairs(tokens) do
         if v:match("^%-%-%w+=$") then
             local optname = table.remove(tokens,k):match("^%-%-(%w+)=$")
-            local value = tokens[k]
+            local value = tokens[k]:match("^[\"']?(.-)[\"']?$")
             opts[optname] = value
         elseif v:match("^%-%-%w+$") then
             local optname = v:match("^%-%-(%w+)$")

@@ -22,11 +22,15 @@ for k,v in pairs(command_handler:get_prefixes()) do
 end
 
 local function add_alias(name,comm,prefix,description)
+    local helpmsg = "Alias for ``"..comm.."``"
+    if description then
+        helpmsg = helpmsg.."\n"..description
+    end
     if (not aliases[name]) then
         log("ALIAS","Adding alias \""..name.."\" for \""..comm.."\"")
-        config.aliases[name] = {comm = comm,prefix = prefix}
+        config.aliases[name] = {comm = comm,prefix = prefix,description = description}
         aliases[name] = command(name,{
-            help = "Alias for ``"..comm.."``",
+            help = helpmsg,
             usage = name,
             category = "Aliases",
             exec = function(msg,args2,opts)
@@ -69,7 +73,7 @@ for k,v in pairs(config.aliases) do
     if type(v) == "string" then --legacy format conversion
         commdata = {comm = v, prefix = false}
     end
-    add_alias(k,commdata.comm,commdata.prefix)
+    add_alias(k,commdata.comm,commdata.prefix,commdata.description)
 end
 
 local prefix = command("prefix",{
