@@ -103,6 +103,46 @@ local warn = command("warn",{
 })
 plugin:add_command(warn)
 
+local pardon = command("pardon",{
+    category = "Security",
+    perms = {
+        "kickMembers"
+    },
+    args = {
+        "member",
+        "number"
+    },
+    exec = function(msg,args,opts)
+        local countst = db:prepare("SELECT id FROM infractions WHERE user = ? AND id = ?")
+        local inf = countst:reset():bind(tostring(args[1].id),args[2]):step()
+        local found = (inf ~= nil)
+        if not found then
+            msg:reply("No infraction "..tostring(args[2]).." found on user "..tostring(args[1].name))
+            return false
+        end
+        local reasonst = db:prepare("SELECT desc, timestamp FROM infractions WHERE id = ?")
+        local infra = reasonst:reset():bind(args[2]):step()
+        if not infra then
+            msg:reply("Unknown id: "..tostring(args[2]))
+            return false
+        end
+        local reason = infra[1]
+        local timestamp = infra[2]
+        local rmst = db:prepare("DELETE FROM infractions WHERE id = ?")
+        rmst:reset():bind(args[2]):step()
+        msg:reply({embed = {
+            title = "User has been pardoned",
+            description = args[1].name.." has been pardoned for warning "..tostring(args[2]),
+            fields = {
+                { name = "Warning count: ", value = tostring(#inf-1)},
+                { name = "Reason: ", value = reason },
+                { name = "Timestamp: ", value = tostring(timestamp) }
+            },
+        }})
+    end
+})
+plugin:add_command(pardon)
+
 local infractions = command("infractions", {
     category = "Security",
     perms = {

@@ -25,6 +25,14 @@ return {
             {name = "Perms:",value = "kickMembers"},
         }
     }},
+    ["pardon"] = {embed={
+        title = "Pardon a user",
+        description = "Like warn, but in reverse",
+        fields = {
+            {name = "Usage:",value = "pardon <user> <infracion id>"},
+            {name = "Perms:",value = "kickMembers"},
+        }
+    }},
     ["infractions"] = { embed = {
         title = "List user infractions",
         description = "Infractions include kicks, bans, mutes and warnings.",
