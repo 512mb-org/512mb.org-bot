@@ -1,7 +1,7 @@
 return function(message,overrides)
     assert(type(message) == "table","table expected, got "..type(message))
     assert(type(overrides) == "table","table expected for arg#2, got "..type(overrides))
-    local fake = {content = message.content,
+    --[[local fake = {content = message.content,
         author = message.author,
         member = message.guild:getMember(message.author.id),
         channel = message.channel,
@@ -40,9 +40,28 @@ return function(message,overrides)
             message:removeReaction(...)
         end,
         emulated = true
-    }
+    }]]
+    fake = {}
     for k,v in pairs(overrides) do
         fake[k] = v
     end
+    fake = setmetatable(fake, {
+        __index = function(self,k)
+            local value = rawget(self,k)
+            if not value then
+                value = message[k]
+                if type(value) == "function" then
+                    return function(x,...)
+                        if not x then error("self expected, got nil") end
+                        return value(message,...)
+                    end
+                else
+                    return value
+                end
+            else
+                return value
+            end
+        end
+    })
     return fake
 end
