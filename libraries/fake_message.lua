@@ -41,7 +41,7 @@ return function(message,overrides)
         end,
         emulated = true
     }]]
-    fake = {}
+    local fake = {}
     for k,v in pairs(overrides) do
         fake[k] = v
     end
