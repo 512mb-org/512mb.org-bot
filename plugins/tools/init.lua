@@ -152,7 +152,7 @@ local markov = command("markov",{
 			return
 		end
 		markov_instance:load_state(preset)
-		local output = markov_instance:run("The",100)
+		local output = markov_instance:run(preset[1],100)
 		msg:reply(output)
 	end
 })

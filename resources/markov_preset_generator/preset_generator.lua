@@ -1,8 +1,8 @@
 markov = require("markov")
 json = require("json")
-text = [[
-
-]]
+text_file = io.open("input",'r')
+text = text_file:read("*a")
+text_file:close()
 markov_instance = markov.new(text)
 preset = io.open("new_preset.json","w")
 a = markov_instance:save_state()
