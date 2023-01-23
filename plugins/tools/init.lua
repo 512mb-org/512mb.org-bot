@@ -152,7 +152,14 @@ local markov = command("markov",{
 			return
 		end
 		markov_instance:load_state(preset)
-		local output = markov_instance:run(preset[1],100)
+        local first_word = ""
+        for k,v in pairs(preset) do
+            first_word = k
+            if math.random(1,10) == 5 then
+                break
+            end
+        end
+		local output = markov_instance:run(first_word,100)
 		msg:reply(output)
 	end
 })
